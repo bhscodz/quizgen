@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: quiz_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: quizdb
+      POSTGRES_USER: quizuser
+      POSTGRES_PASSWORD: quizpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: quiz_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: quiz-pgadmin
+    depends_on:
+      - postgres
+    ports:
+      - "5051:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pgadmin4@pgadmin.org
+      PGADMIN_DEFAULT_PASSWORD: root
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
