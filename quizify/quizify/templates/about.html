@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}About Us - QUIZGEN{% endblock %}
+
+{% block content %}
+<style>
+    .about-section {
+        background: linear-gradient(to top,rgb(255, 255, 255),rgb(0, 132, 255));
+        padding: 50px 20px;
+        border-radius: 20px;
+        margin: 30px auto;
+        max-width: 900px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 1s ease-in-out;
+    }
+
+    .about-title {
+        font-size: 3rem;
+        font-weight: bold;
+        color:rgb(255, 255, 255);
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .about-text {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        text-align: center;
+        color: #333;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="about-section">
+    <h1 class="about-title">About Us</h1>
+    <p class="about-text">
+        Welcome to <strong>Quizgen</strong>, your go-to destination for fun and challenging quizzes on a variety of topics. Whether you're learning solo or competing in teams, we've got something exciting for everyone.
+    </p>
+    <p class="about-text">
+        Our goal is to make learning more engaging, competitive, and rewarding. Join us to test your knowledge, challenge friends, and climb the leaderboard!
+    </p>
+</div>
+{% endblock %}

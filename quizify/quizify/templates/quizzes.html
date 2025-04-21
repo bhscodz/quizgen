@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Quizzes - QUIZGEN{% endblock %}
+
+{% block content %}
+<div class="container my-4 p-4 bg-light rounded shadow-sm">
+    <h1 class="text-center text-primary mb-4 border-bottom pb-2 border-warning">Available Quizzes</h1>
+
+    <div class="bg-info bg-opacity-10 p-3 rounded mb-4 border-start border-5 border-warning">
+        <p class="text-dark mb-0">Test your knowledge across various topics! Each quiz contains 10 multiple-choice questions. Complete all quizzes to become a Quiz Champion!</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">General Knowledge</h5>
+                <p class="text-muted small">Test your knowledge of world facts and trivia</p>
+                <a href="/quiz/1" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">Science</h5>
+                <p class="text-muted small">Physics, chemistry, biology and more</p>
+                <a href="/quiz/2" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">History</h5>
+                <p class="text-muted small">Ancient civilizations to modern events</p>
+                <a href="/quiz/3" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">Programming</h5>
+                <p class="text-muted small">Coding concepts and languages</p>
+                <a href="/quiz/4" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">Sports</h5>
+                <p class="text-muted small">Athletes, records, and championships</p>
+                <a href="/quiz/5" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <div class="bg-white p-3 rounded shadow-sm border-top border-4 border-primary h-100">
+                <h5 class="text-primary">Math</h5>
+                <p class="text-muted small">Numbers, equations, and logic</p>
+                <a href="/quiz/6" class="btn btn-warning fw-bold px-3">Start Quiz</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-primary text-white text-center p-4 rounded mt-5">
+        <h4 class="text-warning">Quiz Statistics</h4>
+        <div class="row mt-3">
+            <div class="col-4">
+                <p class="fs-4 text-warning mb-0">6</p>
+                <p class="small mb-0">Total Quizzes</p>
+            </div>
+            <div class="col-4">
+                <p class="fs-4 text-warning mb-0">60</p>
+                <p class="small mb-0">Total Questions</p>
+            </div>
+            <div class="col-4">
+                <p class="fs-4 text-warning mb-0">10</p>
+                <p class="small mb-0">Questions per Quiz</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <p class="fs-5 text-dark">Ready to challenge yourself?</p>
+        <p class="text-muted">Select a quiz above to start playing!</p>
+    </div>
+</div>
+{% endblock %}

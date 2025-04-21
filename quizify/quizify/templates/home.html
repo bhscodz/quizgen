@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}
+Home - QUIZGEN
+{% endblock title %}
+{% block content %}
+<section class="hero text-center text-white" style="padding: 100px 20px; background-color: rgb(255, 255, 255);;">
+  <section class="hero text-center text-white" style="padding: 100px 20px; background-color: rgb(0, 132, 255);">
+    <div class="container">
+      <h1 class="display-4 fw-bold">Welcome to Quizgen</h1>
+      <p class="lead mt-3">Join live quizzes, compete with friends, and view real-time scores!</p>
+  
+      <!-- Join Quiz Form -->
+      <form action="{% url 'join_quiz' %}" method="post" class="d-flex justify-content-center join-form mt-4">
+        {% csrf_token %}
+        <input type="text" name="quiz_code"
+          class="form-control text-center join-input"
+          placeholder="Enter Quiz PIN" required
+          style="
+            max-width: 250px;
+            border-radius: 30px;
+            padding: 10px 20px;
+            background-color: #ffc107;
+            border: none;
+            color: black;
+            font-weight: 500;
+          ">
+      </form>
+    </div>
+  </section>
+  
+  <!-- Features Section -->
+  <section class="features py-5 text-center bg-light text-dark">
+    <div class="container">
+      <h2 class="mb-4">Why Quizgen?</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card border-0 h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">Live Competition</h5>
+              <p class="card-text">Compete with friends and classmates in real time and see live scores as you play.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">Instant Results</h5>
+              <p class="card-text">No waiting! Get instant results and rankings as soon as the quiz ends.</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card border-0 h-100 shadow-sm">
+            <div class="card-body">
+              <h5 class="card-title">Create & Host</h5>
+              <p class="card-text">Create custom quizzes on any topic, host them live, and track team performance easily.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Call to Action Section -->
+  <section class="cta py-4 mt-3 text-white" style="background-color: #1f1f1f;">
+    <div class="container text-center">
+      <h2 class="mb-3">Ready to test your knowledge?</h2>
+      <p class="mb-4">Create an account or join as a guest and start quizzing now!</p>
+      {% comment %} <a href="{% url 'guest_login' %}" class="btn btn-outline-light btn-lg">Continue as Guest</a> {% endcomment %}
+    </div>
+  </section>
+  
+  <!-- Custom styles -->
+  <style>
+    .join-input::placeholder {
+      color: black;
+      opacity: 0.9;
+    }
+  </style>  
+</section>
+
+<style>
+  .join-input::placeholder {
+    color: black;
+    opacity: 0.9;
+  }
+</style>
+<!-- How It Works -->
+<section class="how-it-works py-5 bg-white text-dark">
+  <div class="container text-center">
+    <h2 class="mb-3">How It Works</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="p-4 border rounded shadow-sm h-100">
+          <h4>1. Create or Join</h4>
+          <p>Create your own quiz or join one using a quiz PIN code shared by your host.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-4 border rounded shadow-sm h-100">
+          <h4>2. Compete Live</h4>
+          <p>Answer questions live against other participants. Fast and correct answers give more points!</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-4 border rounded shadow-sm h-100">
+          <h4>3. Track Scores</h4>
+          <p>See real-time rankings and final scores instantly. Share your results with friends!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Top Categories -->
+<section class="categories py-5 bg-light text-dark">
+  <div class="container text-center">
+    <h2 class="mb-4">Explore Quiz Categories</h2>
+    <div class="row g-4">
+       {% for category in subject_categories %}
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="bg-warning rounded py-3 px-2 text-dark fw-semibold shadow-sm">{{ category }}</div>
+      </div>
+      {% endfor %} 
+    </div>
+  </div>
+</section>
+<!-- Testimonials -->
+<section class="testimonials py-5 text-white mb-5" style="background-color: #333;">
+  <div class="container text-center">
+    <h2 class="mb-4">What Our Users Say</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="border p-3 rounded bg-dark shadow-sm">
+          <p>"Quizgen is so fun! I played with my classmates and loved seeing the live scores."</p>
+          <h6>- Genos, Student</h6>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="border p-3 rounded bg-dark shadow-sm">
+          <p>"Perfect for teachers to test students in real time. The UI is clean and easy to use."</p>
+          <h6>- Mr. Ben, Teacher</h6>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="border p-3 rounded bg-dark shadow-sm">
+          <p>"Loved the guest access feature! No signup needed to jump into quizzes."</p>
+          <h6>- Alex, Casual User</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Footer -->
+{% comment %} <footer class="bg-dark text-white py-4 mt-5">
+  <div class="container text-center">
+    <p class="mb-1">&copy; 2025 Quizgen. All rights reserved.</p>
+    <p class="mb-0">
+      <a href="#" class="text-white text-decoration-none me-3">About</a>
+      <a href="#" class="text-white text-decoration-none me-3">Privacy</a>
+      <a href="#" class="text-white text-decoration-none">Contact</a>
+    </p>
+  </div>
+</footer> {% endcomment %}
+
+{% endblock content %}
