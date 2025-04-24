@@ -1,14 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <title>Live Quiz</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    .question { font-size: 20px; margin-bottom: 10px; }
+    .option { margin: 5px 0; }
+    .hidden { display: none; }
+    .timer { color: red; font-size: 18px; margin-bottom: 15px; }
+  </style>
 </head>
 <body>
-    welcome {{username}}
-</body>
-<script>
+  <div id="status">Connecting to quiz server...</div>
+  <div id="question-container" class="hidden">
+    <div id="timer" class="timer"></div>
+    <div id="question" class="question"></div>
+    <div id="options"></div>
+    <button onclick="submitAnswer()" id="submit">Submit Answer</button>
+  </div>
+  <div id="wait-message" class="hidden">Waiting for next question...</div>
+  <div id="quiz-end" class="hidden">The quiz has ended. Thank you!</div>
 
-</script>
+  <script>
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const quizSocket = new WebSocket(
+      `${wsProtocol}://${window.location.host}/ws/quizroom/`
+    );
+
+    let syncedTimeOffset = 0;
+    let currentDuration = 0;
+    let countdownTimer = null;
+    let selectedOption = null;
+
+    quizSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+
+      if (data.sync_time) {
+        const clientTime = Date.now() / 1000;
+        syncedTimeOffset = data.sync_time - clientTime;
+        document.getElementById("status").innerText = "Connected and synced.";
+      }
+
+      if (data.state_message) {
+        handleState(data.state_message);
+      }
+
+      if (data.question_data) {
+        loadQuestion(data.question_data);
+      }
+
+      if (data.quiz_closed === "end") {
+        document.getElementById("question-container").classList.add("hidden");
+        document.getElementById("wait-message").classList.add("hidden");
+        document.getElementById("quiz-end").classList.remove("hidden");
+        clearInterval(countdownTimer);
+      }
+    };
+
+    function handleState(state) {
+      const status = document.getElementById("status");
+      const qCont = document.getElementById("question-container");
+      const wait = document.getElementById("wait-message");
+
+      if (state === "active_question") {
+        status.innerText = "Answer the question!";
+        qCont.classList.remove("hidden");
+        wait.classList.add("hidden");
+      } else if (state === "wait_for_next") {
+        status.innerText = "Waiting for next question...";
+        qCont.classList.add("hidden");
+        wait.classList.remove("hidden");
+      } else if (state === "end") {
+        document.getElementById("quiz-end").classList.remove("hidden");
+        qCont.classList.add("hidden");
+        wait.classList.add("hidden");
+      } else {
+        status.innerText = state;
+      }
+    }
+
+    function loadQuestion(q) {
+      const qElem = document.getElementById("question");
+      const opts = document.getElementById("options");
+      const timerElem = document.getElementById("timer");
+
+      qElem.innerText = q.question;
+      opts.innerHTML = "";
+
+      q.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.innerText = opt;
+        btn.className = "option";
+        btn.onclick = () => {
+          selectedOption = index;
+          document.querySelectorAll(".option").forEach(b => b.style.background = "");
+          btn.style.background = "lightblue";
+        };
+        opts.appendChild(btn);
+      });
+
+      currentDuration = q.duration;
+      let timeLeft = currentDuration;
+
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        timeLeft--;
+        timerElem.innerText = `Time Left: ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(countdownTimer);
+          timerElem.innerText = "Time Over!";
+        }
+      }, 1000);
+    }
+
+    function submitAnswer() {
+      if (selectedOption !== null) {
+        quizSocket.send(
+          JSON.stringify({ quiz_response: selectedOption })
+        );
+        alert("Answer submitted!");
+        selectedOption = null;
+      } else {
+        alert("Please select an option!");
+      }
+    }
+
+    quizSocket.onclose = function() {
+      document.getElementById("status").innerText = "Disconnected from quiz.";
+    };
+  </script>
+</body>
 </html>

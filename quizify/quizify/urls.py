@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home,name="home"),
     path('accounts',include("accounts.urls")),
+    path('quizroom',include("quizroom.urls")),
+    path('manage_quiz',views.manage_quiz,name='manage_quiz'),
     path('quizzes',views.quizzes,name='quizzes'),
     path('about',views.about,name='about'),
     path('join_quiz',views.join_quiz,name='join_quiz')

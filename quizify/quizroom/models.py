@@ -5,8 +5,12 @@ class QuizRoom(models.Model):
     quiz_name=models.CharField(blank=False,unique=True,max_length=100)
     quiz_id = models.CharField(max_length=100, unique=True)
     host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_quizzes')
-    number_of_questions = models.PositiveIntegerField()
+    number_of_questions = models.PositiveIntegerField(editable=False,default=0) #editable=False
     date_created = models.DateTimeField(auto_now_add=True)
+    choices=[("NS","not started"),
+             ("OG","on going"),
+             ("EN",'ended'),]
+    status=models.CharField(choices=choices,max_length=255,default="NS")
     def __str__(self):
         return f"QuizRoom {self.quiz_id} by {self.host.username}"
 
