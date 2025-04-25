@@ -113,16 +113,24 @@
               <p class="quiz-meta">Created on: {{ quiz.date_created|date:"M d, Y" }}</p>
               <p class="quiz-status">Status: {{ quiz.status }}</p>
             </div>
-            <div class="quiz-actions mt-4 px-2">
-              <a href="{% url 'quizroom:manage' quiz.quiz_id %}" class="btn btn-start btn-sm">Edit / Start</a>
+            <div class="" style="display:flex; flex-flow:row wrap; gap:2px; justify-content:space-evenly; align-items:center;">
+              <a href="{% url 'quizroom:manage' quiz.quiz_id %}" class="btn btn-start btn-sm mt-2">start quiz</a>
+              <a href="{% url 'add_questions' quiz.quiz_id %}" class="btn btn-start btn-sm mt-2">add/update questions</a>
+              <a href="{% url 'create_room'%}" class="btn btn-start btn-sm mt-2">update quizroom</a>
             </div>
           </div>
         </div>
         {% endfor %}
       </div>
+      <button style="padding: 10px 20px; display:block; margin:10px auto 10px auto; background-color: #4CAF50; color: white; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+        Create more Quiz
+      </button>
     {% else %}
       <div class="alert alert-info text-center">
         You haven't created any quizzes yet.
+        <a href='{% url "create_room" %}' style="padding: 10px 20px; background-color: #4CAF50; color: white; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+          Create Quiz
+        </a>
       </div>
     {% endif %}
   </div>

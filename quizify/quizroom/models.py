@@ -17,7 +17,8 @@ class QuizRoom(models.Model):
 class Question(models.Model):
     room = models.ForeignKey('QuizRoom', on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField()
-    duration=models.IntegerField(default=10)
+    question_image=models.ImageField(upload_to="question_image",max_length=100,blank=True,null=True)
+    duration = models.PositiveIntegerField(default=10)
     option_a = models.CharField(max_length=255)
     option_b = models.CharField(max_length=255)
     option_c = models.CharField(max_length=255)

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Quiz Room</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #e6f0fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .quiz-room-form {
+      background: #ffffff;
+      padding: 32px 36px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0, 123, 255, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .quiz-room-form h2 {
+      text-align: center;
+      color: #0077cc;
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #b3d1f7;
+      border-radius: 8px;
+      background-color: #f8fbff;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #66aaff;
+      outline: none;
+      background-color: #fff;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #3399ff;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #267acc;
+    }
+  </style>
+</head>
+<body>
+  <form class="quiz-room-form" method="POST" action="">
+    {% csrf_token %}
+    <h2>Create Quiz Room</h2>
+    <div class="form-group">
+        {{ form.quiz_name.label }}
+        {{ form.quiz_name }}
+        {{ form.quiz_name.errors }}
+    </div>
+    <div class="form-group">
+        {{ form.quiz_id.label }}
+        {{ form.quiz_id }}
+        {{ form.quiz_id.errors }}
+    </div>
+    
+    {% for field in form %}
+    
+    {% if field.errors %}
+    {{ field.label }} {{ field.errors }}<br>
+    {% endif %}
+      
+       
+    {% endfor %}
+      
+    <button type="submit" class="submit-btn">Create Room</button>
+  </form>
+</body>
+</html>

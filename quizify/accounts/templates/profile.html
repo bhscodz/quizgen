@@ -14,7 +14,14 @@
         
         <div class="avatar-container">
             <img src="https://img.freepik.com/premium-vector/personas-icon_1076610-12224.jpg" alt="User Avatar" class="profile-avatar">
+            
+            {% if request.user.is_authenticated %}
+            <h2 class="username-heading">{{ request.user.username }}</h2>
+            {% else %}
             <h2 class="username-heading">Guest_User</h2>
+            {% endif %}
+                
+           
         </div>
     </div>
 

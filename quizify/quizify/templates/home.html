@@ -21,7 +21,7 @@ Home - QUIZGEN
           {% if request.user.is_authenticated %}
           <input type="text" name="username" class="form-control text-center" required value="{{ request.user.username }}">
           {% else %}
-          <input type="text" name="username" class="form-control text-center" required>
+          <input type="text" name="username" class="form-control text-center" required value="guest">
           {% endif %}
         </div>
         <div class="mb-3 w-100">

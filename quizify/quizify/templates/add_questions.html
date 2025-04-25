@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Add Quiz Questions</title>
+    <style>
+      input[type='text'],
+      input[type='number'],
+      select,
+      textarea {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 14px;
+        border: 1px solid #90caf9;
+        border-radius: 6px;
+        background-color: #f1f9ff;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+      }
+      
+      input:focus,
+      textarea:focus,
+      select:focus {
+        background-color: #ffffff;
+        border-color: #42a5f5;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(66, 165, 245, 0.2);
+      }
+      
+      label {
+        font-size: 14px;
+        color: #1e3a5f;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      
+      textarea {
+        min-height: 60px;
+        resize: vertical;
+      }
+      
+      .form-group {
+        margin-bottom: 16px;
+      }
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #e3f2fd;
+        padding: 30px;
+      }
+      
+      .quiz-container {
+        max-width: 750px;
+        margin: auto;
+        background: #fff;
+        padding: 24px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 123, 255, 0.2);
+      }
+      
+      .question-form {
+        display: none;
+      }
+      
+      .question-form.active {
+        display: block;
+      }
+      
+      .form-group {
+        margin-bottom: 16px;
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+      
+      .nav-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      
+      button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #42a5f5;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      
+      .add-btn {
+        margin-top: 20px;
+        background: #388e3c;
+      }
+      .question-block {
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        margin-bottom: 24px;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+      
+      .question-block:nth-child(4n + 1) {
+        background-color: #e3f2fd;
+      }
+      
+      .question-block:nth-child(4n + 2) {
+        background-color: #e8f5e9;
+      }
+      
+      .question-block:nth-child(4n + 3) {
+        background-color: #fff8e1;
+      }
+      
+      .question-block:nth-child(4n + 4) {
+        background-color: #fce4ec;
+      }
+      
+      #add-question-btn {
+        display: block;
+        margin: 0 auto 32px;
+        background-color: #2979ff;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+      
+      #add-question-btn:hover {
+        background-color: #1565c0;
+      }
+      #question-tracker {
+        position: fixed;
+        left: 0;
+        top: 100px;
+        background-color: #2979ff;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 0 8px 8px 0;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+      }
+      
+      #question-tracker p {
+        margin: 4px 0;
+      }
+      
+      @media (max-width: 768px) {
+        #question-tracker {
+          top: 0;
+          left: 0;
+          width: 100%;
+          border-radius: 0;
+          display: flex;
+          justify-content: space-around;
+          box-shadow: none;
+        }
+      
+        #question-tracker p {
+          margin: 8px 0;
+          font-size: 13px;
+        }
+      }
+      
+      
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quiz-container">
+      <h2>Add Quiz Questions</h2>
+
+      <form method="POST" action="">
+        {% csrf_token %}
+        {{ form.management_form }}
+        <div id="question-forms-wrapper">
+          {% for f in form %}
+            <div class="question-form question-block {% if forloop.first %}active{% endif %}" id="question-{{ forloop.counter0 }}">
+              Question <strong class="q_count">{{ forloop.counter }}</strong>
+              {{ f.id }}
+              <div class="form-group">{{ f.question_text.label }}
+                {{ f.question_text }}
+                {{ f.question_text.errors }}</div>
+              <div class="form-group">{{ f.question_image.label }}
+                {{ f.question_image }}
+                {{ f.question_image.errors }}</div>
+
+              <div class="form-group">{{ f.duration.label }}
+                {{ f.duration }}
+                {{ f.duration.errors }}</div>
+
+              <div class="form-group">{{ f.option_a.label }}
+                {{ f.option_a }}
+                {{ f.option_a.errors }}</div>
+
+              <div class="form-group">{{ f.option_b.label }}
+                {{ f.option_b }}
+                {{ f.option_b.errors }}</div>
+
+              <div class="form-group">{{ f.option_c.label }}
+                {{ f.option_c }}
+                {{ f.option_c.errors }}</div>
+
+              <div class="form-group">{{ f.option_d.label }}
+                {{ f.option_d }}
+                {{ f.option_d.errors }}</div>
+
+              <div class="form-group">{{ f.correct_option.label }}
+                {{ f.correct_option }}
+                {{ f.correct_option.errors }}</div>
+
+              <div class="form-group">{{ f.points.label }}
+                {{ f.points }}
+                {{ f.points.errors }}</div>
+              <div class="form-group">{{ f.DELETE.label }}
+                {{ f.DELETE }}
+                {{ f.DELETE.errors }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="nav-buttons">
+          <button type="button" onclick="showPrev()">Previous</button>
+          <button type="button" onclick="showNext()">Next</button>
+        </div>
+        <button type="submit" class="add-btn">Submit Quiz</button>
+      </form>
+    </div>
+    <div id="question-tracker">
+        <p><strong>Questions:</strong> <span id="total-questions">0</span></p>
+        <p><strong>Current:</strong> <span id="current-question">1</span></p>
+    </div>
+    <script>
+        // creating a copy of question block
+        // important : always call 1 extra block from formset to get all default values
+        // otherwise formset will not validate as they treat the forms as modified forms
+      const blocks = document.querySelectorAll('.question-block')
+      const lastBlock = blocks[blocks.length - 1]
+      
+      let currentFormIndex = 0
+      let total=document.querySelectorAll(".question-form").length;
+      function updateFormVisibility() {
+        const forms = document.querySelectorAll('.question-form')
+        forms.forEach((form, i) => {
+          form.classList.toggle('active', i === currentFormIndex)
+        })
+      }
+
+      function updateTracker(current, total) {
+        document.getElementById('total-questions').textContent = total;
+        document.getElementById('current-question').textContent = current;
+      }
+      updateTracker(currentFormIndex+1,total);
+      function showNext() {
+        const forms = document.querySelectorAll('.question-form')
+        if (currentFormIndex < forms.length - 1) {
+          currentFormIndex++
+          updateFormVisibility()
+          updateTracker(currentFormIndex+1,total)
+        }
+      }
+      
+      function showPrev() {
+        if (currentFormIndex > 0) {
+          currentFormIndex--;
+          updateFormVisibility();
+          updateTracker(currentFormIndex+1,total);
+        }
+      }
+      function remove_me(event,e){
+        //document.remove(e);
+        event.preventDefault()
+        let num=document.querySelector(".q_count").textContent;
+        e.querySelector(`#id_questions-${num}-DELETE`).checked=true;
+      }
+      
+      let num = -1;
+      const wrapper = document.querySelector('#question-forms-wrapper')
+      const quizContainer = document.querySelector('.quiz-container')
+      const questionContainer = document.querySelector('.question-form')
+      const addButton = document.createElement('button')
+      addButton.id = 'add-question-btn'
+      addButton.type = 'button'
+      addButton.textContent = '+ Add Question'
+      quizContainer.appendChild(addButton)
+      
+      addButton.addEventListener('click', () => {
+        num++;
+        const numblocks = document.querySelectorAll('.question-block');
+        //const lastBlock = blocks[blocks.length - 1]
+        // lastBlock.cloneNode(true)
+        const copy_block = lastBlock.cloneNode(true);
+        const newBlock = copy_block;
+        const but=document.createElement("button");
+        const total_form_counter=document.querySelector("#id_questions-TOTAL_FORMS");
+        const count=parseInt(lastBlock.querySelector(".q_count").textContent);
+        let form_regex=RegExp(`questions-(\\d){1}-`,'g');
+        
+        // creating delete button
+        but.classList.add("btn");
+        but.classList.add("btn-danger");
+        but.textContent="delete";
+        but.setAttribute("onclick",`remove_me(${event},${newBlock})`);
+        // editing block properties
+        
+        newBlock.id=`question-${numblocks.length}`
+        total=numblocks.length+1;
+        newBlock.style.backgroundColor = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},0.5)`
+        newBlock.querySelector(".q_count").textContent=`${numblocks.length+1}`;
+        newBlock.classList.remove("active")
+        newBlock.innerHTML=newBlock.innerHTML.replace(form_regex,`questions-${total-1}-`);
+        // Clear values from cloned inputs
+        /* newBlock.querySelector("select").value='';
+        newBlock.querySelectorAll('input, textarea, select').forEach((input) => {
+          if (input.type === 'text' || input.tagName === 'TEXTAREA' || input.type === 'number') {
+            input.value = ''
+          }
+        })
+        */
+        wrapper.appendChild(newBlock);
+        total_form_counter.setAttribute('value',`${total}`);
+        updateTracker(currentFormIndex+1,total);
+      })
+    </script>
+  </body>
+</html>
