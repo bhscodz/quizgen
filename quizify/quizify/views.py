@@ -2,9 +2,11 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from quizroom.models import QuizRoom
 from django.shortcuts import HttpResponse
+from django.http import JsonResponse
 from .forms import create_quiz,question_formset
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from .decorators import ishost
 # from django.contrib.auth import authenticate, login
 # from django.contrib.auth.models import User
 def home(request):
@@ -34,8 +36,8 @@ def create_quiz_room(request):
             form.host=request.user
             form.save()
             print("saved")
-            return redirect(f"add_question/{room}")
-    return render(request,"create_quiz.html",{"form":form})
+            return redirect(f"add_questions/{room}")
+    return render(request,"create_quiz.html",{"form":form,"title":"create"})
 
 @login_required(login_url="accounts:login_user")
 def add_questions(request,room_id):
@@ -55,3 +57,26 @@ def add_questions(request,room_id):
         return render(request,"add_questions.html",{"form":form})
     else:
         return HttpResponse("room does not exist")
+
+@login_required(login_url="accounts:login_user")
+@ishost
+def update_room(request,room_id):
+    room=QuizRoom.objects.get(quiz_id=room_id)
+    form = create_quiz(instance=room)
+    if request.method=="POST":
+        form=create_quiz(request.POST,instance=room)
+        if form.is_valid():
+            form.save()
+            return redirect("manage_quiz")
+    return render(request,"create_quiz.html",{"form":form,"title":"update"})
+
+@login_required(login_url="accounts:login_user")
+@ishost
+def delete_room(request,room_id):
+    room=QuizRoom.objects.get(quiz_id=room_id)
+    info=room.delete()
+    if info[0]:
+        return JsonResponse({"success":info})
+    else:
+        return JsonResponse({"error":"failed to delete room"})
+    

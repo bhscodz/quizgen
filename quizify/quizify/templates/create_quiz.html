@@ -75,7 +75,7 @@
 <body>
   <form class="quiz-room-form" method="POST" action="">
     {% csrf_token %}
-    <h2>Create Quiz Room</h2>
+    <h2>{{title}} Quiz Room</h2>
     <div class="form-group">
         {{ form.quiz_name.label }}
         {{ form.quiz_name }}
@@ -86,17 +86,8 @@
         {{ form.quiz_id }}
         {{ form.quiz_id.errors }}
     </div>
-    
-    {% for field in form %}
-    
-    {% if field.errors %}
-    {{ field.label }} {{ field.errors }}<br>
-    {% endif %}
       
-       
-    {% endfor %}
-      
-    <button type="submit" class="submit-btn">Create Room</button>
+    <button type="submit" class="submit-btn">{{title}} Room</button>
   </form>
 </body>
 </html>

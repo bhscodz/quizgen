@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,7 +105,7 @@
     {% if all_quizes %}
       <div class="row g-4">
         {% for quiz in all_quizes %}
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-lg-4" id="{{ quiz.quiz_id }}">
           <div class="quiz-card d-flex flex-column p-3">
             <div class="quiz-header">{{ quiz.quiz_name }}</div>
             <div class="pt-3 px-2">
@@ -112,19 +113,20 @@
               <p class="quiz-meta">no of questions: <code>{{ quiz.number_of_questions }}</code></p>
               <p class="quiz-meta">Created on: {{ quiz.date_created|date:"M d, Y" }}</p>
               <p class="quiz-status">Status: {{ quiz.status }}</p>
+              <button class="btn btn-danger" style="padding:2px;" onclick='confirmation("{{quiz.quiz_id}}")'>delete room</button>
             </div>
             <div class="" style="display:flex; flex-flow:row wrap; gap:2px; justify-content:space-evenly; align-items:center;">
               <a href="{% url 'quizroom:manage' quiz.quiz_id %}" class="btn btn-start btn-sm mt-2">start quiz</a>
               <a href="{% url 'add_questions' quiz.quiz_id %}" class="btn btn-start btn-sm mt-2">add/update questions</a>
-              <a href="{% url 'create_room'%}" class="btn btn-start btn-sm mt-2">update quizroom</a>
+              <a href="{% url 'update_room' room_id=quiz.quiz_id %}" class="btn btn-start btn-sm mt-2">update quizroom</a>
             </div>
           </div>
         </div>
         {% endfor %}
       </div>
-      <button style="padding: 10px 20px; display:block; margin:10px auto 10px auto; background-color: #4CAF50; color: white; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
-        Create more Quiz
-      </button>
+      <a href='{% url "create_room" %}' style="text-align:center; text-decoration:none; width:fit-content; padding: 10px 20px; display:block; margin:10px auto 4px auto; background-color: #4CAF50; color: white; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">
+        Create more Quizzes
+      </a>
     {% else %}
       <div class="alert alert-info text-center">
         You haven't created any quizzes yet.
@@ -135,5 +137,48 @@
     {% endif %}
   </div>
 
+
+  {% comment %} warning modal {% endcomment %}
+  <div id="deleteModal" style="display: none; position: fixed; top:0%; left:0%; width: 100%; height: 100%; 
+     background: rgba(0, 0, 0, 0.6); justify-content: center; align-items: center; z-index: 10000;">
+  <div style="background: white; margin:auto; padding: 20px; border-radius: 6px; max-width: 400px; width: 90%; text-align: center;">
+    <p style="color:black; margin-bottom: 20px;">Are you sure you want to delete this item?</p>
+    <button id="confirmDelete" onclick=remove_me(this,true) style="padding: 8px 16px; background-color: #d32f2f; color: white; border: none; margin-right: 10px;">Yes, Delete</button>
+    <button id="cancelDelete" onclick=remove_me(this,false) style="padding: 8px 16px; background-color: #ccc; border: none;">Cancel</button>
+  </div>
+</div>
+<script src="{% static 'notification.js' %}"></script>
+<script>
+  const del_modal=document.querySelector("#deleteModal");
+
+  function confirmation(room_id){
+    del_modal.room_id=room_id;
+    del_modal.style.display="block";
+  }
+
+  function remove_me(ele,op){
+    ele.parentElement.parentElement.style.display="none";
+    let id=ele.parentElement.parentElement.room_id;
+    if (op){
+      delete_room(id);
+    }
+  }
+  
+  function delete_room(room_id){
+      fetch(`${location.protocol}//${location.host}/delete_room/${room_id}`)
+      .then(response => response.json())
+      .then((data) => {
+        console.log(data);
+        if (data["success"]){
+          createNotification("successfully deleted room","success");
+          document.querySelector(`#${room_id}`).remove();
+        }
+        else{
+          createNotification("could not delete\n"+data["error"],"error");
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+</script>
 </body>
 </html>

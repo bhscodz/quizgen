@@ -29,6 +29,9 @@ urlpatterns = [
     path('about',views.about,name='about'),
     path('join_quiz',views.join_quiz,name='join_quiz'),
     path("create_room",views.create_quiz_room,name='create_room'),
+    path("update_room/<str:room_id>",views.update_room,name='update_room'),
+    path("update_room/<str:room_id>",views.update_room,name='update_room'),
+    path("delete_room/<str:room_id>",views.delete_room,name='delete_room'),
     path('add_questions/<str:room_id>',views.add_questions,name='add_questions'),
 ]
 
