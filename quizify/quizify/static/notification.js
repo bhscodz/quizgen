@@ -36,3 +36,14 @@ function createNotification(message, type = 'info') {
       notification.remove();
     }, 4000);
   }
+
+window.onload = function(){
+  const messages=document.querySelectorAll(".msn");
+  if(messages.length>0){
+    console.log(messages)
+    for(let m=0;m<messages.length;m++){
+      setTimeout(createNotification(messages[m].textContent,messages[m].id),1000)
+    }
+  }
+  
+};

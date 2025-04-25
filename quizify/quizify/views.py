@@ -7,6 +7,7 @@ from .forms import create_quiz,question_formset
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from .decorators import ishost
+from django.contrib import messages
 # from django.contrib.auth import authenticate, login
 # from django.contrib.auth.models import User
 def home(request):
@@ -21,6 +22,9 @@ def manage_quiz(request):
 def quizzes(request):
     return render (request,"quizzes.html")
 def home(request):
+    messages.success(request, f"hi there {request.user}")
+    messages.success(request, f"how are you {request.user}")
+    messages.success(request, f"gm {request.user}")
     return render(request,"home.html")
 def join_quiz(request):
     #logic to travel to the quiz page according to input code

@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .decorators import ishost
 from .models import *
+from django.contrib import messages
 # Create your views here.
 def connect_to_server(request):
     if request.method=="POST":
