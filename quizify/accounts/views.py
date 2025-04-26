@@ -48,11 +48,12 @@ def guest_login(request):
 @login_required(login_url="accounts:login_user")
 def profile(request):
     user = request.user
-    profile = user.profile  # Assumes a OneToOneField relationship between User and Profile
+    profile, created = Profile.objects.get_or_create(user=user)  
     return render(request, 'profile.html', {
         'user': user,
         'profile': profile
     })
+
 
 @login_required(login_url="accounts:login_user")
 def edit_profile(request):
