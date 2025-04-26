@@ -1,144 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Live Quiz</title>
+  <meta charset="UTF-8">
+  <title>Quiz Room</title>
   <style>
-    body { font-family: Arial; margin: 20px; }
-    .question { font-size: 20px; margin-bottom: 10px; }
-    .option { margin: 5px 0; }
-    .hidden { display: none; }
-    .timer { color: red; font-size: 18px; margin-bottom: 15px; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+    }
+
+    #quiz-room {
+      max-width: 800px;
+      margin: auto;
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    }
+
+    h2 {
+      text-align: center;
+      color: #ff6f61;
+    }
+
+    #status {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .spinner {
+      border: 6px solid rgba(255,255,255,0.1);
+      border-top: 6px solid #ff6f61;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #question {
+      margin-top: 30px;
+      padding: 20px;
+      background: #2e2e2e;
+      border-radius: 10px;
+    }
+
+    .option {
+      background: #333;
+      margin: 10px 0;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .option:hover {
+      background: #444;
+    }
+
+    #leaderboard, #answers {
+      margin-top: 20px;
+      background: #292929;
+      padding: 15px;
+      border-radius: 10px;
+    }
   </style>
 </head>
 <body>
-  <div id="status">Connecting to quiz server...</div>
-  <div id="question-container" class="hidden">
-    <div id="timer" class="timer"></div>
-    <div id="question" class="question"></div>
-    <div id="options"></div>
-    <button onclick="submitAnswer()" id="submit">Submit Answer</button>
-  </div>
-  <div id="wait-message" class="hidden">Waiting for next question...</div>
-  <div id="quiz-end" class="hidden">The quiz has ended. Thank you!</div>
+  <div id="quiz-room">
+    <h2>Welcome to the Quiz Room</h2>
 
-  <div class="message" style="display:none;">
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }} msn"{% endif %} id="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+    <div id="status">Connecting to the lobby...</div>
+    <div class="spinner" id="lobby-spinner"></div>
+
+    <div id="question" style="display:none;">
+      <h3 id="question-text"></h3>
+      <div id="options-container"></div>
+    </div>
+
+    <div id="leaderboard" style="display:none;">
+      <h4>Leaderboard</h4>
+      <ul id="leaderboard-list"></ul>
+    </div>
   </div>
-  {% load static %}
-  <script src="{% static 'notification.js' %}"></script>
 
   <script>
-    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const quizSocket = new WebSocket(
-      `${wsProtocol}://${window.location.host}/ws/quizroom/`
-    );
+    const ws = new WebSocket('ws://' + window.location.host + '/ws/quizroom/');
 
-    let syncedTimeOffset = 0;
-    let currentDuration = 0;
-    let countdownTimer = null;
-    let selectedOption = null;
+    const status = document.getElementById("status");
+    const spinner = document.getElementById("lobby-spinner");
+    const questionBox = document.getElementById("question");
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const leaderboard = document.getElementById("leaderboard");
+    const leaderboardList = document.getElementById("leaderboard-list");
 
-    quizSocket.onmessage = function(e) {
+    ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
 
-      if (data.sync_time) {
-        const clientTime = Date.now() / 1000;
-        syncedTimeOffset = data.sync_time - clientTime;
-        document.getElementById("status").innerText = "Connected and synced.";
-      }
-
-      if (data.state_message) {
-        handleState(data.state_message);
-      }
-
-      if (data.question_data) {
-        loadQuestion(data.question_data);
-      }
-
-      if (data.quiz_closed === "end") {
-        document.getElementById("question-container").classList.add("hidden");
-        document.getElementById("wait-message").classList.add("hidden");
-        document.getElementById("quiz-end").classList.remove("hidden");
-        clearInterval(countdownTimer);
+      if (data.state_message === "active_question") {
+        status.innerText = "Question is live!";
+        spinner.style.display = "none";
+      } else if (data.state_message === "wait_for_next") {
+        status.innerText = "Waiting for next question...";
+        spinner.style.display = "block";
+        questionBox.style.display = "none";
+      } else if (data.question_data) {
+        const q = data.question_data;
+        questionText.innerText = q.question;
+        optionsContainer.innerHTML = "";
+        q.options.forEach((opt, idx) => {
+          const btn = document.createElement("div");
+          btn.className = "option";
+          btn.innerText = `${String.fromCharCode(65+idx)}. ${opt}`;
+          btn.onclick = () => {
+            ws.send(JSON.stringify({quiz_response: String.fromCharCode(65+idx)}));
+            status.innerText = "Answer submitted!";
+          };
+          optionsContainer.appendChild(btn);
+        });
+        questionBox.style.display = "block";
+        spinner.style.display = "none";
+      } else if (data.quiz_closed === "end") {
+        status.innerText = "Quiz Finished! Final Scores:";
+        leaderboard.style.display = "block";
+        leaderboardList.innerHTML = "";
+        data.final_standings.forEach((entry) => {
+          const li = document.createElement("li");
+          li.textContent = entry.username + ": " + entry.score;
+          leaderboardList.appendChild(li);
+        });
       }
     };
 
-    function handleState(state) {
-      const status = document.getElementById("status");
-      const qCont = document.getElementById("question-container");
-      const wait = document.getElementById("wait-message");
+    ws.onopen = () => {
+      status.innerText = "Connected to quiz room.";
+    };
 
-      if (state === "active_question") {
-        status.innerText = "Answer the question!";
-        qCont.classList.remove("hidden");
-        wait.classList.add("hidden");
-      } else if (state === "wait_for_next") {
-        status.innerText = "Waiting for next question...";
-        qCont.classList.add("hidden");
-        wait.classList.remove("hidden");
-      } else if (state === "end") {
-        document.getElementById("quiz-end").classList.remove("hidden");
-        qCont.classList.add("hidden");
-        wait.classList.add("hidden");
-      } else {
-        status.innerText = state;
-      }
-    }
-
-    function loadQuestion(q) {
-      const qElem = document.getElementById("question");
-      const opts = document.getElementById("options");
-      const timerElem = document.getElementById("timer");
-
-      qElem.innerText = q.question;
-      opts.innerHTML = "";
-
-      q.options.forEach((opt, index) => {
-        const btn = document.createElement("button");
-        btn.innerText = opt;
-        btn.className = "option";
-        btn.onclick = () => {
-          selectedOption = index;
-          document.querySelectorAll(".option").forEach(b => b.style.background = "");
-          btn.style.background = "lightblue";
-        };
-        opts.appendChild(btn);
-      });
-
-      currentDuration = q.duration;
-      let timeLeft = currentDuration;
-
-      clearInterval(countdownTimer);
-      countdownTimer = setInterval(() => {
-        timeLeft--;
-        timerElem.innerText = `Time Left: ${timeLeft}s`;
-        if (timeLeft <= 0) {
-          clearInterval(countdownTimer);
-          timerElem.innerText = "Time Over!";
-        }
-      }, 1000);
-    }
-
-    function submitAnswer() {
-      if (selectedOption !== null) {
-        quizSocket.send(
-          JSON.stringify({ quiz_response: selectedOption })
-        );
-        alert("Answer submitted!");
-        selectedOption = null;
-      } else {
-        alert("Please select an option!");
-      }
-    }
-
-    quizSocket.onclose = function() {
-      document.getElementById("status").innerText = "Disconnected from quiz.";
+    ws.onclose = () => {
+      status.innerText = "Disconnected.";
+      spinner.style.display = "none";
     };
   </script>
 </body>

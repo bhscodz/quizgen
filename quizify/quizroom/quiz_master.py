@@ -1,27 +1,33 @@
 # quiz_master.py
 import time
 import asyncio
-from asgiref.sync import async_to_sync
+from asgiref.sync import async_to_sync,sync_to_async
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from django.core.cache import cache
 from .models import QuizRoom, Question
 
+@database_sync_to_async
+def get_room(quiz_id):
+    return QuizRoom.objects.get(quiz_id=quiz_id)
 class QuizMaster:
     def __init__(self, quiz_id,host_channel_name):
         self.quiz_id = quiz_id
-        self.room=QuizRoom.objects.get(quiz_id=quiz_id)
         self.room_group_name = f"quizroom_{quiz_id}"
         self.host_channel_name=host_channel_name
         self.channel_layer = get_channel_layer()
         self.cache_prefix = f"master:{quiz_id}"
         self.questions = [] 
 
-    def load_questions(self):
+    async def read_sync_db(self):
+        self.room=await get_room(self.quiz_id)
+    
+    async def load_questions(self):
         # Load questions from DB
-        self.questions = list(Question.objects.filter(room=self.room).order_by('pk'))
+        self.questions = await database_sync_to_async(lambda: list(Question.objects.filter(room=self.room).order_by('pk')))()
         print(f"[QuizMaster] Loaded {len(self.questions)} questions.")
 
-    def prepare_cache(self):
+    async def prepare_cache(self):
         # Reset quiz state
         cache.set(f"{self.cache_prefix}_current_question", None)
         cache.set(f"{self.cache_prefix}_scores", {}) # Dict of user_id/session -> score
@@ -30,7 +36,6 @@ class QuizMaster:
         cache.set(f"{self.cache_prefix}_leader_board",{})
         cache.set(f"{self.cache_prefix}_host_channel_name",self.host_channel_name)
         print("[QuizMaster] Cache initialized.")
-
 
     async def send_question(self, question, index):
         question_data = {
@@ -67,8 +72,12 @@ class QuizMaster:
         print(f"[QuizMaster] Sent question {index + 1}")
 
     async def run_quiz(self):
-        self.load_questions()
-        self.prepare_cache()
+        print("3")
+        await self.read_sync_db()
+        await self.load_questions()
+        print("4")
+        await self.prepare_cache()
+        print("5")
         await self.channel_layer.send(
             self.host_channel_name,
             {
@@ -139,7 +148,9 @@ class QuizMaster:
 
 # To run inside an async context (e.g., async Django mgmt command)
 async def start_quiz_master(quiz_id,host_channel_name):
+    print("1")
     master = QuizMaster(quiz_id,host_channel_name)
+    print("2")
     await master.run_quiz()
     return master
     

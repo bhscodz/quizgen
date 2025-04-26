@@ -17,6 +17,7 @@ def set_cache(key, value):
 
 class quiz_consumer(AsyncWebsocketConsumer):
     async def connect(self):
+        print("[quiz_consumer] trying to connect...")
         if(self.scope["session"]["verified"]) and cache.get(f"master:{self.scope["session"]["quizid"]}_master_is_on"):
             self.user=self.scope["user"]
             self.session_id=self.scope["session"].session_key
@@ -31,8 +32,10 @@ class quiz_consumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             if self.state != "end":
                 dict=cache.get(f"master:{self.room_name}_current_participants")
-                dict[self.room_name]=self.username
+                dict[self.session_id]=self.username
                 dict=cache.set(f"master:{self.room_name}_current_participants",dict)
+                print("[quiz_consumer] participant updated")
+                
             await self.accept()
             await self.update_lobby()
             await self.sync_time()
@@ -46,10 +49,11 @@ class quiz_consumer(AsyncWebsocketConsumer):
         await self.channel_layer.send(
             cache.get(f"master:{self.room_name}_host_channel_name"),
             {
-                "type":"update.lobby",
-                "lobby_data":list(cache.get(f"master:{self.room_name}_current_participants").values)
+                "type":"update.lobby.host",
+                "lobby_data":list(cache.get(f"master:{self.room_name}_current_participants").values())
             }
         )
+        print("[quiz_consumer] lobby update sent")
         
     async def send_state(self):
         state=self.state
@@ -92,7 +96,10 @@ class quiz_consumer(AsyncWebsocketConsumer):
         await self.send(json.dumps({"sync_time":time.time()}))
     
     async def disconnect(self, close_code):
-        print(f"connection closed {close_code}")
+        print(f"connection closed {close_code} disconnecting from {self.scope["path"]}")
+        dict=cache.get(f"master:{self.room_name}_current_participants")
+        dict.pop(self.room_name)
+        dict=cache.set(f"master:{self.room_name}_current_participants",dict)
         await self.update_lobby()
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
@@ -151,13 +158,31 @@ class waiting_for_host(AsyncWebsocketConsumer):
     async def start_quiz(self,event):
         await self.send(json.dumps({"status":"started"}))
         await self.close()
+    
+    async def disconnect(self,close_code):
+        print(f"disconnecting from {self.scope["path"]} code {close_code}")
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         
 class host_management(AsyncWebsocketConsumer):
     async def connect(self):
+        print("[host_management] trying to connect...")
         if self.scope["session"]["host_verified"]:
             self.room_name=self.scope["session"]["room_id"]
-            self.room_group_name= f"quizroom_host_{self.room_name}"
+            self.room_group_name= f"quizroom_host:{self.room_name}"
             await self.accept()
+            data1=cache.get(f"self.room_group_name_status")
+            data2=cache.get(f"self.room_group_name_lobby")
+            data3=cache.get(f"self.room_group_name_leader_board")
+            if data1:
+                print("state_found",data1)
+                await self.send(json.dumps({"update_from_cache_status":data1}))
+            if data2:
+                print("state_found",data2)
+                await self.send(json.dumps({"update_from_cache_lobby":data2}))
+            if data3:
+                print("state_found",data3)
+                await self.send(json.dumps({"update_from_cache_leader_board":data3}))
+            
         else:
             DenyConnection("host validation failed")
             
@@ -172,23 +197,45 @@ class host_management(AsyncWebsocketConsumer):
                     await self.master_instance.start_quiz()
                 else:
                     self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
-            
+    
+    async def update_cache_lobby(self,lobby):
+        print("state updated")
+        cache.set(f"{self.room_group_name}_lobby",lobby)      
+    async def update_cache_leader(self,leader):
+        print("state updated")
+        cache.set(f"{self.room_group_name}_leader",leader)      
+    async def update_cache_status(self,status):
+        print("state updated")
+        cache.set(f"{self.room_group_name}_status",status)      
+    
     async def waiting_lobby_started(self,event):
+        await self.update_cache_status("waiting_lobby_started")
         await self.send(json.dumps({"status":"waiting_lobby_started"}))
+        
     
     async def quiz_started_host(self,event):
+        await self.update_cache_status("Quiz_started")
         await self.send(json.dumps({"status":"Quiz_started"}))
+       
     
-    async def update_lobby(self,event):
+    async def update_lobby_host(self,event):
+        await self.update_cache_lobby(event["lobby_data"])
         await self.send(json.dumps({"update_lobby":event["lobby_data"]}))
+        
     
     async def update_leader_board(self,event):
+        await self.update_cache_leader(event["leader_board"])
         await self.send(json.dumps({"update_leader":event["leader_board"]}))
-    
+        
+        
     async def quiz_finished_host(self,event):
+        await self.update_cache_status("quiz ended")
         await self.send(json.dumps({"status":"quiz ended"}))
+        await self.update_cache_status("quiz ended")
     
     async def update_question_host(self,event):
         await self.send(json.dumps({"update_question":event["question"]}))
-            
+    
+    async def disconnect(self, close_code):
+        print(f"connection closed{close_code} disconnecting from {self.scope["path"]}")
     
