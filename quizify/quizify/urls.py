@@ -33,6 +33,6 @@ urlpatterns = [
     path("update_room/<str:room_id>",views.update_room,name='update_room'),
     path("delete_room/<str:room_id>",views.delete_room,name='delete_room'),
     path('add_questions/<str:room_id>',views.add_questions,name='add_questions'),
-]
-
-urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+] 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

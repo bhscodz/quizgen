@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.models import User
 from .forms import create_user
+from .models import Profile
 from .decorators import isguest 
 from django.contrib import messages
 # Create your views here.
@@ -39,11 +40,44 @@ def logout_user(request):
     messages.success(request, f"logged out")
     return render(request,'login.html')
 
-@login_required(login_url="accounts:login_user")
-def profile(request):
-    return render(request,'profile.html')
-
 @isguest
 def guest_login(request):
     messages.success(request, f"welcom guest user")
     return redirect("home")
+
+@login_required(login_url="accounts:login_user")
+def profile(request):
+    user = request.user
+    profile = user.profile  # Assumes a OneToOneField relationship between User and Profile
+    return render(request, 'profile.html', {
+        'user': user,
+        'profile': profile
+    })
+
+@login_required(login_url="accounts:login_user")
+def edit_profile(request):
+    if request.method == 'POST':
+        # Get form data
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        bio = request.POST.get('bio')
+        avatar = request.FILES.get('avatar')  # Get uploaded file
+        
+        # Update User model
+        user = request.user
+        user.username = username
+        user.email = email
+        user.save()
+        
+        # Update Profile model
+        profile, created = Profile.objects.get_or_create(user=user)
+        profile.bio = bio
+        if avatar:  # Only update if new avatar was uploaded
+            profile.avatar = avatar
+        profile.save()
+        
+        return redirect('accounts:profile')  # Redirect to profile page after saving
+    
+    return render(request, 'edit_profile.html', {
+        'user': request.user
+    })
