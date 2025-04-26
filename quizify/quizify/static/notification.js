@@ -42,7 +42,7 @@ window.onload = function(){
   if(messages.length>0){
     console.log(messages)
     for(let m=0;m<messages.length;m++){
-      setTimeout(createNotification(messages[m].textContent,messages[m].id),1000)
+      setTimeout(createNotification(messages[m].textContent,messages[m].id),100)
     }
   }
   
