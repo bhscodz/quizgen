@@ -1,11 +1,103 @@
-<div class="message" style="display:none;">
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }} msn"{% endif %} id="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Host View</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #status, #participants, #leaderboard { margin: 20px 0; }
+    button { padding: 10px 20px; margin-right: 10px; }
+    #participants-list li { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Quiz Host Dashboard</h1>
+  <div id="status">Status: <span id="quiz-status">Idle</span></div>
+
+  <button id="start-lobby">Start Lobby</button>
+  <button id="start-quiz" disabled>Start Quiz</button>
+
+  <div id="participants">
+    <h3>Current Participants</h3>
+    <ul id="participants-list"></ul>
   </div>
-  {% load static %}
-  <script src="{% static 'notification.js' %}"></script>
+
+  <div id="leaderboard">
+    <h3>Leaderboard</h3>
+    <ul id="leaderboard-list"></ul>
+  </div>
+
+  <script>
+    const roomId = sessionStorage.getItem("room_id");  // Replace with Django template var if needed
+    const socket = new WebSocket(
+      `ws://${window.location.host}/ws/quizroom/host/`
+    );
+
+    const statusSpan = document.getElementById("quiz-status");
+    const startLobbyBtn = document.getElementById("start-lobby");
+    const startQuizBtn = document.getElementById("start-quiz");
+    const participantsList = document.getElementById("participants-list");
+    const leaderboardList = document.getElementById("leaderboard-list");
+
+    startLobbyBtn.onclick = () => {
+      socket.send(JSON.stringify({ message: "start_quiz_lobby" }));
+    };
+
+    startQuizBtn.onclick = () => {
+      socket.send(JSON.stringify({ message: "start_quiz" }));
+    };
+
+    function updateHostQuestion(question) {
+        const questionBox = document.getElementById("current-question");
+        questionBox.innerHTML = `
+          <h3>Question ${question.index + 1}: ${question.text}</h3>
+          <ul>
+            ${question.options.map((opt, i) => `<li><strong>${String.fromCharCode(65 + i)}.</strong> ${opt}</li>`).join("")}
+          </ul>
+          <p><strong>Points:</strong> ${question.points}</p>
+          <p><strong>Duration:</strong> ${question.duration} seconds</p>
+        `;
+      }
+
+    socket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+
+      if (data.status === "waiting_lobby_started") {
+        statusSpan.textContent = "Lobby Started";
+        startLobbyBtn.disabled = true;
+        startQuizBtn.disabled = false;
+      }
+      
+      if (data.status === "Quiz_started") {
+        statusSpan.textContent = "Quiz Started";
+        startQuizBtn.disabled = true;
+      }
+
+      if (data.status === "quiz ended") {
+        statusSpan.textContent = "Quiz Ended";
+      }
+      if (data.update_question) {
+        updateHostQuestion(data.update_question)
+      }
+
+      if (data.update_lobby) {
+        participantsList.innerHTML = "";
+        data.update_lobby.forEach(user => {
+          const li = document.createElement("li");
+          li.textContent = user;
+          participantsList.appendChild(li);
+        });
+      }
+
+      if (data.update_leader) {
+        leaderboardList.innerHTML = "";
+        data.update_leader.forEach(entry => {
+          const li = document.createElement("li");
+          li.textContent = `${entry.username}: ${entry.score}`;
+          leaderboardList.appendChild(li);
+        });
+      }
+    };
+  </script>
+</body>
+</html>

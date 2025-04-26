@@ -4,6 +4,7 @@ from channels.exceptions import DenyConnection
 import json
 from django.core.cache import cache
 import time
+from .quiz_master import start_quiz_master
 # redeclaring the cache function and making them asynchronous
 
 @sync_to_async
@@ -30,17 +31,26 @@ class quiz_consumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             if self.state != "end":
                 dict=cache.get(f"master:{self.room_name}_current_participants")
-                dict[f"pariticapnt:{self.session_id}"]=self.username
+                dict[self.room_name]=self.username
                 dict=cache.set(f"master:{self.room_name}_current_participants",dict)
             await self.accept()
+            await self.update_lobby()
             await self.sync_time()
-            if self.scope["session"]["reconnected"]:
-                await self.send(json.dumps({"update_on_reconnect":self.cached_data}))
+            await self.send(json.dumps({"update_on_connect":self.cached_data}))
             await self.send_state()
         else:
             DenyConnection("connect is not authorized")
 
     #send state message either through room group or by explicitly calling it
+    async def update_lobby(self):
+        await self.channel_layer.send(
+            cache.get(f"master:{self.room_name}_host_channel_name"),
+            {
+                "type":"update.lobby",
+                "lobby_data":list(cache.get(f"master:{self.room_name}_current_participants").values)
+            }
+        )
+        
     async def send_state(self):
         state=self.state
         if self.state=="started" and self.get_question_state()=="active":
@@ -65,12 +75,13 @@ class quiz_consumer(AsyncWebsocketConsumer):
         else:
             return "no_question"
     
-    async def send_question(self,quiz_data):
+    async def send_question(self,quiz_data,time):
         user_data=cache.get(f"participant:{self.session_id}")
         data={
             "question":quiz_data["question"],
             "options":quiz_data["options"],
             "duration":quiz_data["duration"],
+            "time_stamp":time,
             "past_answers": user_data["answers"],
             "score":user_data["score"],
             "leader_board":user_data["leader_board"]
@@ -82,12 +93,15 @@ class quiz_consumer(AsyncWebsocketConsumer):
     
     async def disconnect(self, close_code):
         print(f"connection closed {close_code}")
+        await self.update_lobby()
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         response = text_data_json["quiz_response"]
+        if response not in ["A","B","C","D"]:
+            return 
         q_state=await self.get_question_state()
         if q_state=="active" and not self.answered:
             d=cache.get(f"participant:{self.room_name}")
@@ -98,18 +112,18 @@ class quiz_consumer(AsyncWebsocketConsumer):
     # Receive message from room group
     async def update_question(self, event):
         self.answered=False
-        self.question=event["question_data"]
+        self.question=event["question"]
         self.question_index=self.question.index
         if not self.started:
             self.started=True
-        await self.send_question()
+        await self.send_question(event["question"],event["timestamp"])
 
-    async def check_answer(self):
+    async def check_answer(self,event):
         await self.send_state()
         data=cache.get(f"participant:{self.room_name}")
         score=data["score"]
         if self.index in data["answers"]:
-            if data["answer"]["index"]==self.question.answer:
+            if data["answer"]["index"]==event["ans"]:
                 data["score"]+=1
                 score=data["score"]
                 # updating the participant cache
@@ -119,18 +133,9 @@ class quiz_consumer(AsyncWebsocketConsumer):
         d_temp[self.room_name]=score
         cache.set(f"master:{self.room_name}_scores",d_temp)
 
-    async def calc_leader_board(self):
-        data_scores=cache.get(f"master:{self.room_name}_scores")
-        data_participants=cache.get(f"master:{self.room_name}_participants")
-        data_scores_sorted=sorted(data_scores,key=lambda x:data_scores[x])
-        leader_board={data_participants[x]:data_scores_sorted[x] for x in data_scores_sorted}
-        temp_cache= cache.get(f"participant:{self.room_name}")
-        temp_cache["leader_board"]=leader_board
-        cache.set(f"participant:{self.room_name}",temp_cache)
 
-
-    async def quiz_finished(self):
-        self.send(json.dumps({"quiz_closed":"end"}))
+    async def quiz_finished(self,event):
+        self.send(json.dumps({"quiz_closed":"end","final_standings":cache.get(f"master:{self.room_name}_leader_board")}))
         self.close()
 
 class waiting_for_host(AsyncWebsocketConsumer):
@@ -138,10 +143,52 @@ class waiting_for_host(AsyncWebsocketConsumer):
         print("[waiting...] connection process initiated")
         if (self.scope["session"]["verified"]):
             self.room_name = self.scope["session"]["quizid"]
+            self.master_instance=None
             self.room_group_name = f"quizroom_{self.room_name}_announcement"
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
         
-    async def quiz_started(self):
+    async def start_quiz(self,event):
         await self.send(json.dumps({"status":"started"}))
         await self.close()
+        
+class host_management(AsyncWebsocketConsumer):
+    async def connect(self):
+        if self.scope["session"]["host_verified"]:
+            self.room_name=self.scope["session"]["room_id"]
+            self.room_group_name= f"quizroom_host_{self.room_name}"
+            await self.accept()
+        else:
+            DenyConnection("host validation failed")
+            
+    async def receive(self, text_data=None):
+        if text_data:
+            text_data_json = json.loads(text_data)
+            message = text_data_json["message"]
+            if message=="start_quiz_lobby":
+                self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
+            elif message=="start_quiz":
+                if self.master_instance:
+                    await self.master_instance.start_quiz()
+                else:
+                    self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
+            
+    async def waiting_lobby_started(self,event):
+        await self.send(json.dumps({"status":"waiting_lobby_started"}))
+    
+    async def quiz_started_host(self,event):
+        await self.send(json.dumps({"status":"Quiz_started"}))
+    
+    async def update_lobby(self,event):
+        await self.send(json.dumps({"update_lobby":event["lobby_data"]}))
+    
+    async def update_leader_board(self,event):
+        await self.send(json.dumps({"update_leader":event["leader_board"]}))
+    
+    async def quiz_finished_host(self,event):
+        await self.send(json.dumps({"status":"quiz ended"}))
+    
+    async def update_question_host(self,event):
+        await self.send(json.dumps({"update_question":event["question"]}))
+            
+    

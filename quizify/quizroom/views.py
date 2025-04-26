@@ -11,6 +11,8 @@ def connect_to_server(request):
         room_code=request.POST.get("room_code")
         user_name=request.POST.get("username")
         room=get_object_or_404(QuizRoom,quiz_id=room_code)
+        if request.user==room.host:
+            return redirect(f"manage/{room.quiz_id}")
         request.session["verified"]=True
         request.session["quizid"]=room.quiz_id
         if not cache.get(f"master:{room.quiz_id}_master_is_on"):
@@ -39,5 +41,7 @@ def connect_to_server(request):
 @login_required(login_url="accounts:login_user")
 @ishost        
 def manage(request,room_id):
-    room=QuizRoom.objects.get(room_id)
+    room=QuizRoom.objects.get(quiz_id=room_id)
+    request.session["host_verified"]=True
+    request.session["room_id"]=room.quiz_id
     return render(request,"host_view.html" ,{"room":room})
