@@ -1,8 +1,12 @@
-<!DOCTYPE html>
+{% comment %} <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Create Quiz Room</title>
+  <title>Create Quiz Room - QUIZGEN</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/3261/3261190.png">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -101,5 +105,139 @@
   {% load static %}
   <script src="{% static 'notification.js' %}"></script>
 
+</body>
+</html> {% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create Quiz Room - QUIZGEN</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/3261/3261190.png">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #e6f0fa, #d4e6ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .quiz-room-form {
+      background: #ffffff;
+      padding: 32px 36px;
+      border-radius: 16px;
+      box-shadow: 0 12px 24px rgba(0, 123, 255, 0.15);
+      max-width: 450px;
+      width: 100%;
+      border: 1px solid rgba(0, 123, 255, 0.1);
+    }
+
+    .quiz-room-form h2 {
+      text-align: center;
+      color: #0077cc;
+      margin-bottom: 24px;
+      font-weight: 600;
+      font-size: 1.8rem;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #b3d1f7;
+      border-radius: 8px;
+      background-color: #f8fbff;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+
+    input[type="text"]:focus {
+      border-color: #66aaff;
+      outline: none;
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(102, 170, 255, 0.2);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(to right, #3399ff, #0077cc);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+    }
+
+    .submit-btn:hover {
+      background: linear-gradient(to right, #267acc, #0066b3);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <form class="quiz-room-form" method="POST" action="">
+    {% csrf_token %}
+    <h2><i class="https://cdn-icons-png.flaticon.com/128/3261/3261190.png"></i> Create Quiz Room</h2>
+    
+    <div class="form-group">
+      <label for="id_quiz_name"><i class="fas fa-question-circle"></i> Quiz Name</label>
+      {{ form.quiz_name }}
+      <small class="text-muted">Give your quiz a descriptive name (e.g., "Science Trivia 2024")</small>
+      {{ form.quiz_name.errors }}
+    </div>
+    
+    <div class="form-group">
+      <label for="id_quiz_id"><i class="fas fa-id-card"></i> Quiz ID</label>
+      {{ form.quiz_id }}
+      <small class="text-muted">Unique identifier for your quiz room (auto-generated if blank)</small>
+      {{ form.quiz_id.errors }}
+    </div>
+
+    <button type="submit" class="submit-btn">
+      <i class="fas fa-door-open"></i> {{title}} Room
+    </button>
+  </form>
+
+  <div class="message">
+    {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+      <li{% if message.tags %} class="{{ message.tags }} msn"{% endif %} id="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+
+  {% load static %}
+  <script src="{% static 'notification.js' %}"></script>
 </body>
 </html>

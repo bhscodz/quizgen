@@ -20,6 +20,7 @@ def signup_user(request):
         else:
             return render(request,"signup.html",{"form":user_form})
     return render(request,"signup.html",{"form":user_form})
+
 @isguest
 def login_user(request):
     if request.method == "POST":
