@@ -1,7 +1,7 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from channels.exceptions import DenyConnection
-import json
+import json,asyncio
 from django.core.cache import cache
 import time
 from .quiz_master import start_quiz_master
@@ -67,7 +67,7 @@ class quiz_consumer(AsyncWebsocketConsumer):
         
     
     async def get_question_state(self):
-        question=cache.get(f"master{self.room_name}_current_question")
+        question=self.question
         if question:
             current=time.time()
             duration =question.get("duration")
@@ -82,7 +82,7 @@ class quiz_consumer(AsyncWebsocketConsumer):
     async def send_question(self,quiz_data,time):
         user_data=cache.get(f"participant:{self.session_id}")
         data={
-            "question":quiz_data["question"],
+            "question":quiz_data["text"],
             "options":quiz_data["options"],
             "duration":quiz_data["duration"],
             "time_stamp":time,
@@ -98,7 +98,10 @@ class quiz_consumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         print(f"connection closed {close_code} disconnecting from {self.scope["path"]}")
         dict=cache.get(f"master:{self.room_name}_current_participants")
-        dict.pop(self.room_name)
+        try:
+            dict.pop(self.session_id,None)
+        except:
+            pass
         dict=cache.set(f"master:{self.room_name}_current_participants",dict)
         await self.update_lobby()
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
@@ -107,42 +110,46 @@ class quiz_consumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         response = text_data_json["quiz_response"]
+        print(response)
         if response not in ["A","B","C","D"]:
             return 
         q_state=await self.get_question_state()
+        print(q_state)
         if q_state=="active" and not self.answered:
-            d=cache.get(f"participant:{self.room_name}")
-            d["answers"][self.index]=response
-            cache.set(f"participant:{self.room_name}",d)
+            d=cache.get(f"participant:{self.session_id}")
+            d["answers"][self.question_index]=response
+            cache.set(f"participant:{self.session_id}",d)
             self.answered=True      
+            print(d)
 
     # Receive message from room group
     async def update_question(self, event):
         self.answered=False
         self.question=event["question"]
-        self.question_index=self.question.index
-        if not self.started:
-            self.started=True
+        self.question_index=self.question["index"]
         await self.send_question(event["question"],event["timestamp"])
 
     async def check_answer(self,event):
         await self.send_state()
-        data=cache.get(f"participant:{self.room_name}")
+        data=cache.get(f"participant:{self.session_id}")
         score=data["score"]
-        if self.index in data["answers"]:
-            if data["answer"]["index"]==event["ans"]:
-                data["score"]+=1
+        self.qi=event["index"] # qusetion index from master
+        if self.qi in data["answers"]:
+            if data["answers"][self.qi]==event["ans"]:
+                data["score"]+=event["points"]
                 score=data["score"]
                 # updating the participant cache
-                cache.set(f"participant:{self.room_name}",data)
+                cache.set(f"participant:{self.session_id}",data)
         # updating the score in main cache
         d_temp=cache.get(f"master:{self.room_name}_scores")
-        d_temp[self.room_name]=score
+        d_temp[self.session_id]=score
         cache.set(f"master:{self.room_name}_scores",d_temp)
+        print("check answer current leader board",d_temp)
 
 
     async def quiz_finished(self,event):
         self.send(json.dumps({"quiz_closed":"end","final_standings":cache.get(f"master:{self.room_name}_leader_board")}))
+        print("final standings",cache.get(f"master:{self.room_name}_leader_board"))
         self.close()
 
 class waiting_for_host(AsyncWebsocketConsumer):
@@ -158,10 +165,6 @@ class waiting_for_host(AsyncWebsocketConsumer):
     async def start_quiz(self,event):
         await self.send(json.dumps({"status":"started"}))
         await self.close()
-    
-    async def disconnect(self,close_code):
-        print(f"disconnecting from {self.scope["path"]} code {close_code}")
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         
 class host_management(AsyncWebsocketConsumer):
     async def connect(self):
@@ -194,7 +197,7 @@ class host_management(AsyncWebsocketConsumer):
                 self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
             elif message=="start_quiz":
                 if self.master_instance:
-                    await self.master_instance.start_quiz()
+                    asyncio.create_task(self.master_instance.start_quiz())
                 else:
                     self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
     

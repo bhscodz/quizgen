@@ -94,10 +94,16 @@ class QuizMaster:
         
     async def calc_leader_board(self):
         data_scores=cache.get(f"{self.cache_prefix}_scores")
-        data_participants=cache.get(f"{self.cache_prefix}_participants")
-        data_scores_sorted=sorted(data_scores,key=lambda x:data_scores[x])
-        leader_board={data_participants[x]:data_scores_sorted[x] for x in data_scores_sorted}
+        
+        data_participants=cache.get(f"{self.cache_prefix}_current_participants")
+        data_scores_sorted = dict(sorted(data_scores.items(), key=lambda item: item[1], reverse=True))
+        print(data_scores_sorted)
+        leader_board={}
+        for i in data_scores_sorted:
+            leader_board[data_participants[i]]=data_scores_sorted[i]
+        #leader_board={data_participants[x]:data_scores_sorted[x] for x in data_scores_sorted}
         cache.set(f"{self.cache_prefix}_leader_board",leader_board)
+        print("[quiz_master] leader board",leader_board)
         await self.channel_layer.send(
             self.host_channel_name,
             {
@@ -123,9 +129,12 @@ class QuizMaster:
                 self.room_group_name,
                 {
                     "type":"check.answer",
-                    "ans":question.correct_option
+                    "ans":question.correct_option,
+                    "points":question.points,
+                    "index":index
                 }
             )
+            await asyncio.sleep(2)
             await self.calc_leader_board()
             await asyncio.sleep(2)
 
@@ -142,8 +151,24 @@ class QuizMaster:
                 "type": "quiz.finished.host",
             },
         )
+
         cache.set(f"{self.cache_prefix}_master_is_on","end")
         print("[QuizMaster] Quiz finished.")
+        asyncio.sleep(10)
+        print("[cleaaning cache]")
+        keys_to_clear = [
+            f"{self.cache_prefix}_current_question",
+            f"{self.cache_prefix}_scores",
+            f"{self.cache_prefix}_current_participants",
+            f"{self.cache_prefix}_master_is_on",
+            f"{self.cache_prefix}_leader_board",
+            f"{self.cache_prefix}_host_channel_name"
+        ]
+    
+        for key in keys_to_clear:
+            cache.delete(key)
+        
+
 
 
 # To run inside an async context (e.g., async Django mgmt command)
