@@ -125,7 +125,7 @@
     </div>
   </div>
   
-  
+  <div id="current-question"></div>
 
   <script>
     // const roomId = sessionStorage.getItem("room_id");  // Replace with Django template var if needed
@@ -195,13 +195,15 @@
       }
 
       if (data.update_leader) {
-        leaderboardList.innerHTML = "";
-        data.update_leader.forEach(entry => {
-          const li = document.createElement("li");
-          li.textContent = `${entry.username}: ${entry.score}`;
-          leaderboardList.appendChild(li);
+        
+        Object.entries(data.update_leader).forEach(([username, score]) => {
+            const li = document.createElement("li");
+            li.textContent = `${username}: ${score}`;
+            leaderboardList.appendChild(li);
         });
-      }
+    
+        document.getElementById("leaderboard").style.display = "block";
+    }
     };
   </script>
 </body>
