@@ -2,110 +2,150 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quiz Host View</title>
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/3261/3261190.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>Quiz Host view | QuizGen</title>
+
   <style>
     body {
-      background-color: #1e1e2f;
+      background: linear-gradient(145deg, #1e1e2f, #232343);
       color: #f0f0f0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       margin: 0;
       padding: 20px;
+      min-height: 100vh;
     }
-  
+
     h1 {
       text-align: center;
       color: #ffd166;
       margin-bottom: 30px;
+      font-size: 2.5rem;
     }
-  
+
     #status {
-      background-color: #2e2e40;
+      background: rgba(46, 46, 64, 0.8);
       padding: 10px 20px;
       border: 2px solid #444;
-      border-radius: 10px;
-      font-size: 1.1rem;
+      border-radius: 12px;
+      font-size: 1.2rem;
       margin-bottom: 20px;
       display: inline-block;
+      backdrop-filter: blur(6px);
     }
-  
+
     #quiz-status {
       color: #06d6a0;
       font-weight: bold;
     }
-  
+
     #start-lobby,
     #start-quiz {
-      background-color: #118ab2;
+      background: linear-gradient(135deg, #118ab2, #0a6c8d);
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 12px 24px;
       font-size: 1rem;
       margin-right: 10px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.3s ease;
     }
-  
+
     #start-lobby:hover,
     #start-quiz:hover {
-      background-color: #0f769e;
+      transform: translateY(-2px);
+      background: linear-gradient(135deg, #0f769e, #095c7a);
     }
-  
+
     #start-quiz:disabled {
-      background-color: #555;
+      background: #555;
       cursor: not-allowed;
     }
-  
+
     #participants,
     #leaderboard {
-      background-color: #2e2e40;
+      background: rgba(46, 46, 64, 0.9);
       border: 2px solid #444;
-      border-radius: 10px;
-      padding: 15px 20px;
-      margin-top: 25px;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 30px;
+      backdrop-filter: blur(8px);
     }
-  
+
     #participants h3,
     #leaderboard h3 {
       color: #ffd166;
       margin-top: 0;
+      font-size: 1.5rem;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
     }
-  
+
     #participants-list,
     #leaderboard-list {
       list-style: none;
-      padding-left: 0;
+      padding: 10px 0 0 0;
+      margin: 0;
     }
-  
+
     #participants-list li,
     #leaderboard-list li {
-      background-color: #3e3e55;
-      margin-bottom: 8px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      transition: background-color 0.2s;
+      background: #3e3e55;
+      margin-bottom: 10px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: background 0.2s, transform 0.2s;
     }
-  
+
     #participants-list li:hover,
     #leaderboard-list li:hover {
-      background-color: #505070;
+      background: #505070;
+      transform: scale(1.03);
     }
-  
+
     .room-info {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    #current-question {
+      margin-top: 40px;
+      background: rgba(46, 46, 64, 0.8);
+      border: 2px solid #444;
+      border-radius: 15px;
+      padding: 20px;
+      display: none;
+      backdrop-filter: blur(6px);
+    }
+
+    #current-question h3 {
+      color: #ffd166;
+      margin-bottom: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .room-info {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #start-lobby, #start-quiz {
+        margin-top: 10px;
+        width: 100%;
+      }
     }
   </style>
-  
-
 </head>
+
 <body>
   <div class="container">
     <h1>Quiz Host Dashboard</h1>
-  
+
     <div class="room-info">
       <div id="status">Status: <span id="quiz-status">Idle</span></div>
       <div>
@@ -113,24 +153,23 @@
         <button id="start-quiz" disabled>Start Quiz</button>
       </div>
     </div>
-  
+
     <div id="participants">
       <h3>Current Participants</h3>
       <ul id="participants-list"></ul>
     </div>
-  
+
     <div id="leaderboard">
       <h3>Leaderboard</h3>
       <ul id="leaderboard-list"></ul>
     </div>
+
+    <div id="current-question"></div>
   </div>
-  
-  <div id="current-question"></div>
 
   <script>
-    // const roomId = sessionStorage.getItem("room_id");  // Replace with Django template var if needed
     const socket = new WebSocket(
-      `ws://${window.location.host}/ws/quizroom/host/`
+      ws://${window.location.host}/ws/quizroom/host/
     );
 
     const statusSpan = document.getElementById("quiz-status");
@@ -138,6 +177,7 @@
     const startQuizBtn = document.getElementById("start-quiz");
     const participantsList = document.getElementById("participants-list");
     const leaderboardList = document.getElementById("leaderboard-list");
+    const currentQuestion = document.getElementById("current-question");
 
     startLobbyBtn.onclick = () => {
       socket.send(JSON.stringify({ message: "start_quiz_lobby" }));
@@ -148,26 +188,27 @@
     };
 
     function updateHostQuestion(question) {
-        const questionBox = document.getElementById("current-question");
-        questionBox.innerHTML = `
-          <h3>Question ${question.index + 1}: ${question.text}</h3>
-          <ul>
-            ${question.options.map((opt, i) => `<li><strong>${String.fromCharCode(65 + i)}.</strong> ${opt}</li>`).join("")}
-          </ul>
-          <p><strong>Points:</strong> ${question.points}</p>
-          <p><strong>Duration:</strong> ${question.duration} seconds</p>
-        `;
-      }
+      currentQuestion.style.display = "block";
+      currentQuestion.innerHTML = `
+        <h3>Question ${question.index + 1}: ${question.text}</h3>
+        <ul>
+          ${question.options.map((opt, i) => <li><strong>${String.fromCharCode(65 + i)}.</strong> ${opt}</li>).join("")}
+        </ul>
+        <p><strong>Points:</strong> ${question.points}</p>
+        <p><strong>Duration:</strong> ${question.duration} seconds</p>
+      `;
+    }
 
     socket.onmessage = function(e) {
       const data = JSON.parse(e.data);
-      console.log(data)
+      console.log(data);
+
       if (data.status === "waiting_lobby_started") {
         statusSpan.textContent = "Lobby Started";
         startLobbyBtn.disabled = true;
         startQuizBtn.disabled = false;
       }
-      
+
       if (data.status === "Quiz_started") {
         statusSpan.textContent = "Quiz Started";
         startQuizBtn.disabled = true;
@@ -182,7 +223,7 @@
       }
 
       if (data.update_question) {
-        updateHostQuestion(data.update_question)
+        updateHostQuestion(data.update_question);
       }
 
       if (data.update_lobby) {
@@ -195,15 +236,15 @@
       }
 
       if (data.update_leader) {
-        
+        leaderboardList.innerHTML = "";
         Object.entries(data.update_leader).forEach(([username, score]) => {
-            const li = document.createElement("li");
-            li.textContent = `${username}: ${score}`;
-            leaderboardList.appendChild(li);
+          const li = document.createElement("li");
+          li.textContent = ${username}: ${score};
+          leaderboardList.appendChild(li);
         });
-    
+
         document.getElementById("leaderboard").style.display = "block";
-    }
+      }
     };
   </script>
 </body>
