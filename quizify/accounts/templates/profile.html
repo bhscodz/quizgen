@@ -11,7 +11,7 @@
     <div class="profile-header">
         <div class="avatar-container">
             {% if profile.avatar %}
-            <img src="{{ profile.avatar.url }}" alt="Avatar" />
+            <img src="{{ profile.avatar.url }}" alt="Avatar" class="profile-avatar" />
             {% else %}
             <p>No avatar uploaded.</p>
             {% endif %}
@@ -44,7 +44,7 @@
         <div class="progress-bar">
             <div class="progress-fill"></div>
         </div>
-        <p style="font-size: 0.9rem; color: #666;">Complete more quizzes to reach the next level!</p>
+        <p class="progress-text">Complete more quizzes to reach the next level!</p>
     </div>
 
     <div class="profile-actions">
@@ -58,11 +58,16 @@
 <style>
     body {
         font-family: 'Poppins', sans-serif;
+        margin: 0;
+        padding: 0;
     }
 
     .profile-decor {
-        position: relative;
+        position: fixed;
+        width: 100%;
+        height: 100%;
         z-index: 0;
+        overflow: hidden;
     }
 
     .blob {
@@ -95,9 +100,10 @@
 
     .profile-block {
         background: white;
-        padding: 2.5rem 3rem;
-        margin: 5rem auto;
+        padding: 2rem;
+        margin: 2rem auto;
         max-width: 850px;
+        width: 90%;
         border-radius: 24px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.08);
         position: relative;
@@ -109,19 +115,21 @@
     }
 
     .username-heading {
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #222;
         margin-top: 1rem;
+        word-break: break-word;
     }
 
     .profile-avatar {
-        width: 130px;
-        height: 130px;
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
         border: 5px solid #4a6bff;
         background-color: #eee;
         box-shadow: 0 0 15px rgba(22, 0, 191, 0.5);
         transition: transform 0.3s ease;
+        object-fit: cover;
     }
 
     .avatar-container {
@@ -139,17 +147,17 @@
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
-        gap: 1.5rem;
-        margin: 2.5rem 0;
+        gap: 1rem;
+        margin: 2rem 0;
     }
 
     .stat-card {
         background: #f9fafe;
-        padding: 1.5rem;
+        padding: 1.2rem;
         border-radius: 16px;
-        flex: 1;
+        flex: 1 1 150px;
         text-align: center;
-        min-width: 150px;
+        min-width: 120px;
         box-shadow: 0 6px 18px rgba(0,0,0,0.05);
         transition: transform 0.3s;
     }
@@ -159,13 +167,13 @@
     }
 
     .stat-card h3 {
-        font-size: 1.2rem;
+        font-size: 1rem;
         margin-bottom: 0.5rem;
         color: #4a6bff;
     }
 
     .stat-card p {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         margin: 0;
         font-weight: 600;
         color: #333;
@@ -182,14 +190,15 @@
         overflow: hidden;
         height: 12px;
         margin: 1rem auto;
-        width: 70%;
+        width: 100%;
+        max-width: 500px;
         box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .progress-fill {
         background: linear-gradient(to right, #4a6bff, #00c6ff);
         height: 100%;
-        width: 30%; /* Adjust dynamically using Django later if needed */
+        width: 30%;
         animation: fillAnimation 2s ease-in-out;
         border-radius: 9999px;
     }
@@ -199,41 +208,104 @@
         to { width: 30%; }
     }
 
+    .progress-text {
+        font-size: 0.9rem; 
+        color: #666;
+        margin-top: 0.5rem;
+    }
+
     .profile-actions {
-        text-align: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
         margin-top: 1.5rem;
     }
 
     .btn-primary {
+        display: inline-block;
         background-color: #4a6bff;
         color: white;
         padding: 0.7rem 1.5rem;
         border: none;
         border-radius: 12px;
         font-size: 1rem;
-        margin-left: 1rem;
+        text-decoration: none;
         cursor: pointer;
         transition: background 0.3s ease;
+        flex: 1 1 auto;
+        min-width: 150px;
+        text-align: center;
     }
 
     .btn-primary:hover {
         background-color: #2f4fe0;
     }
 
-    .btn-secondary {
-        background: transparent;
-        border: 2px solid #4a6bff;
-        color: #4a6bff;
-        padding: 0.7rem 1.5rem;
-        border-radius: 12px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .profile-block {
+            padding: 1.5rem;
+            margin: 1.5rem auto;
+            width: 95%;
+        }
+
+        .username-heading {
+            font-size: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+        }
+
+        .stat-card {
+            flex: 1 1 120px;
+            padding: 1rem;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+        }
+
+        .stat-card p {
+            font-size: 1.3rem;
+        }
+
+        .btn-primary {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+        }
     }
 
-    .btn-secondary:hover {
-        background: #4a6bff;
-        color: white;
+    @media (max-width: 480px) {
+        .profile-block {
+            padding: 1.2rem;
+            border-radius: 16px;
+        }
+
+        .profile-stats {
+            gap: 0.8rem;
+        }
+
+        .stat-card {
+            flex: 1 1 100px;
+            min-width: 80px;
+            padding: 0.8rem;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .btn-primary {
+            width: 100%;
+        }
     }
 </style>
 

@@ -51,7 +51,7 @@ def add_questions(request,room_id):
             if form.is_valid():
                 form.save()
                 messages.success(request, f"QUESTIONS ADDED SUCCESSFULLY") 
-                return redirect("home")
+                return redirect("manage_quiz")
             else:
                 print(form.errors)
         return render(request,"add_questions.html",{"form":form})

@@ -5,13 +5,11 @@ Home - QUIZGEN
 {% endblock title %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero text-center text-white py-5" style="background: linear-gradient(90deg, #007bff, #00c6ff);">
   <div class="container">
     <h1 class="display-4 fw-bold">Welcome to Quizgen</h1>
     <p class="lead mt-3">Join live quizzes, compete with friends, and view real-time scores!</p>
 
-    <!-- Join Quiz Form -->
     <form method="post" action="{% url 'quizroom:connect_to_server' %}" class="mx-auto mt-4" style="max-width: 400px;">
       {% csrf_token %}
       <div class="mb-3">
@@ -32,7 +30,6 @@ Home - QUIZGEN
   </div>
 </section>
 
-<!-- Features Section -->
 <section class="features py-5 text-center bg-light text-dark">
   <div class="container">
     <h2 class="mb-4">Why Quizgen?</h2>
@@ -65,7 +62,6 @@ Home - QUIZGEN
   </div>
 </section>
 
-<!-- Call to Action -->
 <section class="cta py-5 text-white" style="background-color: #1f1f1f;">
   <div class="container text-center">
     <h2 class="mb-3">Ready to test your knowledge?</h2>
@@ -73,7 +69,6 @@ Home - QUIZGEN
   </div>
 </section>
 
-<!-- How It Works -->
 <section class="how-it-works py-5 bg-white text-dark">
   <div class="container text-center">
     <h2 class="mb-4">How It Works</h2>
