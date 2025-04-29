@@ -26,7 +26,7 @@ urlpatterns = [
     path('quizroom/',include("quizroom.urls")),
     path('manage_quiz',views.manage_quiz,name='manage_quiz'),
     path('quizzes',views.quizzes,name='quizzes'),
-    path('about',views.about,name='about'),
+    path('about/',views.about,name='about'),
     path('join_quiz',views.join_quiz,name='join_quiz'),
     path("create_room",views.create_quiz_room,name='create_room'),
     path("update_room/<str:room_id>",views.update_room,name='update_room'),

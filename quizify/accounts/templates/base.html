@@ -16,6 +16,7 @@
 <html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Quizgen{% endblock %}</title>
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/3261/3261190.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -40,7 +41,6 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:rgb(0, 132, 255); border-bottom: 3px solid rgb(250, 221, 2);">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
@@ -62,9 +62,9 @@
                     </li>
                 </ul>
 
-                <!-- Join Form & Auth Buttons -->
+                
                 <div class="d-flex flex-column flex-lg-row align-items-lg-center w-100 justify-content-lg-end gap-3 mt-3 mt-lg-0">
-                    <!-- Join Quiz Form -->
+                    
                     <form class="d-flex w-100 w-lg-auto " action="{% url 'join_quiz' %}" method="post">
                         {% csrf_token %}
                         <input 
@@ -88,8 +88,7 @@
                             onblur="this.style.boxShadow='0 2px 5px rgba(0,0,0,0.2)'"
                         >
                     </form>
-
-                    <!-- Auth Buttons -->
+            
                     <div class="navbar-auth-buttons">
                         {% if user.is_authenticated %}
                         <div class="dropdown">
@@ -121,21 +120,19 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="flex-grow-1">
         {% block content %}
         <!-- Content will be injected here -->
         {% endblock %}
     </main>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white py-3 mt-auto">
         <div class="container text-center">
             &copy; {% now "Y" %} Quizgen. All rights reserved.
         </div>
     </footer>
 
-    <!-- Bootstrap Icons -->
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

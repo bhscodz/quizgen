@@ -13,14 +13,12 @@
             --accent-color: #fd79a8;
         }
 
-        /* Responsive base styles */
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, var(--bs-body-bg) 0%, var(--bs-secondary-bg) 100%);
             padding: 1rem;
         }
 
-        /* Theme toggler styles */
         .theme-toggler {
             position: fixed;
             bottom: 20px;
@@ -155,8 +153,6 @@
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.2s; }
         .delay-3 { animation-delay: 0.3s; }
-
-        /* Responsive adjustments */
         @media (max-width: 576px) {
             body {
                 padding: 0.5rem;
@@ -247,12 +243,11 @@
         </div>
 
         <div class="additional-options mt-4 animated delay-3">
-            <p class="text-muted">Don't have an account? <a href='{% url "accounts:signup_user" %}' style="color:rgb(65, 127, 250);"><b>Sign In</b></a></p>
+            <p class="text-muted">Don't have an account? <a href='{% url "accounts:signup_user" %}' style="color:rgb(65, 127, 250);"><b>Sign Up</b></a></p>
         </div> 
     </form>
 </main>
 
-<!-- Theme toggler button -->
 <button class="theme-toggler" id="themeToggler" title="Toggle theme">☀️</button>
 
   <div class="message" style="display:none;">
@@ -269,7 +264,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Theme toggler functionality
     const themeToggler = document.getElementById('themeToggler');
     const htmlElement = document.documentElement;
     
@@ -291,7 +285,6 @@
         localStorage.setItem('bsTheme', newTheme);
     });
 
-    // Password toggle functionality
     function togglePassword() {
         const passwordField = document.getElementById('password');
         if (passwordField.type === 'password') {
@@ -301,7 +294,6 @@
         }
     }
 
-    // Add animation class to elements as they come into view
     document.addEventListener('DOMContentLoaded', function() {
         const animatedElements = document.querySelectorAll('.animated');
         

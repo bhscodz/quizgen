@@ -19,7 +19,7 @@ def manage_quiz(request):
 def quizzes(request):
     return render (request,"quizzes.html")
 def home(request):
-    messages.success(request, f"hi there {request.user}")
+    messages.success(request, f"Welcome {request.user}")
     return render(request,"home.html")
 def join_quiz(request):
     #logic to travel to the quiz page according to input code
@@ -50,7 +50,8 @@ def add_questions(request,room_id):
             form=question_formset(request.POST,request.FILES,instance=room)
             if form.is_valid():
                 form.save()
-                return redirect("home")
+                messages.success(request, f"QUESTIONS ADDED SUCCESSFULLY") 
+                return redirect("manage_quiz")
             else:
                 print(form.errors)
         return render(request,"add_questions.html",{"form":form})
@@ -66,6 +67,7 @@ def update_room(request,room_id):
         form=create_quiz(request.POST,instance=room)
         if form.is_valid():
             form.save()
+            messages.success(request, f"quiz updated successfully") 
             return redirect("manage_quiz")
     return render(request,"create_quiz.html",{"form":form,"title":"update"})
 
