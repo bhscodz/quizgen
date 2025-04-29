@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Quiz Host View</title>
-  
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <style>
     body {
       background-color: #1e1e2f;
@@ -98,6 +98,7 @@
       align-items: center;
       flex-wrap: wrap;
     }
+    
   </style>
   
 
@@ -123,9 +124,13 @@
       <h3>Leaderboard</h3>
       <ul id="leaderboard-list"></ul>
     </div>
+    <div id="current-question"></div>
   </div>
   
-  <div id="current-question"></div>
+  
+  
+  
+
 
   <script>
     // const roomId = sessionStorage.getItem("room_id");  // Replace with Django template var if needed
@@ -158,6 +163,26 @@
           <p><strong>Duration:</strong> ${question.duration} seconds</p>
         `;
       }
+    function update_lobby(data){
+      participantsList.innerHTML = "";
+        data.forEach(user => {
+          const li = document.createElement("li");
+          li.textContent = user;
+          participantsList.appendChild(li);
+        });
+    }
+
+    function update_leader_board(data){
+      leaderboardList.innerHTML='';
+      Object.entries(data).forEach(([username, score]) => {
+        const li = document.createElement("li");
+        li.textContent = `${username}: ${score}`;
+        leaderboardList.appendChild(li);
+    });
+
+    document.getElementById("leaderboard").style.display = "block";
+    }
+    
 
     socket.onmessage = function(e) {
       const data = JSON.parse(e.data);
@@ -177,8 +202,23 @@
         statusSpan.textContent = "Quiz Ended";
       }
 
-      if (data.update_from_cache_status) {
-        statusSpan.textContent = data.update_from_cache;
+      if (data.update_from_cache) {
+        if(data.update_from_cache.status){
+            statusSpan.textContent = data.update_from_cache.status;
+            if (data.update_from_cache.status === "waiting_lobby_started"){
+              startLobbyBtn.disabled = true;
+              startQuizBtn.disabled = false;
+            }
+            else if(data.update_from_cache.status === "Quiz Started"){
+              startQuizBtn.disabled = true;
+            }
+        }
+        if(data.update_from_cache.lobby){
+            update_lobby(data.update_from_cache.lobby)
+        }
+        if(data.update_from_cache.leader_board){
+            update_leader_board(data.update_from_cache.leader_board)
+        }
       }
 
       if (data.update_question) {
@@ -186,24 +226,13 @@
       }
 
       if (data.update_lobby) {
-        participantsList.innerHTML = "";
-        data.update_lobby.forEach(user => {
-          const li = document.createElement("li");
-          li.textContent = user;
-          participantsList.appendChild(li);
-        });
+        update_lobby(data.update_lobby)
       }
 
       if (data.update_leader) {
-        
-        Object.entries(data.update_leader).forEach(([username, score]) => {
-            const li = document.createElement("li");
-            li.textContent = `${username}: ${score}`;
-            leaderboardList.appendChild(li);
-        });
-    
-        document.getElementById("leaderboard").style.display = "block";
-    }
+        update_leader_board(data.update_leader);
+      }
+     
     };
   </script>
 </body>

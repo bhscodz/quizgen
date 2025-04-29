@@ -21,7 +21,8 @@ def connect_to_server(request):
         if not cache.get(f"participant:{session_id}"):
             cache.set(f"participant:{session_id}",{
                 "username":user_name,
-                "quiz_id":"room_code",
+                "quiz_id":room_code,
+                "room_name":room.quiz_name,
                 "score":0,
                 "answers":{},
                 "leader_board":{},
@@ -29,12 +30,12 @@ def connect_to_server(request):
             })
         else:
             request.session["reconnected"]=True
-        return render(request,"quizroom.html",{"username":user_name})
+        return render(request,"quizroom.html",{"username":user_name,"room_name":room.quiz_name})
     else:
         data=cache.get(f"participant:{request.session.session_key}",None)
         if data:
             request.session["reconnected"]=True
-            return render(request,"quizroom.html",{"username":data["username"]})
+            return render(request,"quizroom.html",{"username":data["username"],"room_name":data["room_name"]})
         else:
             return redirect("home")
 

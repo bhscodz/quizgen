@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Quiz Room</title>
   <style>
     body {
@@ -71,19 +72,63 @@
       padding: 15px;
       border-radius: 10px;
     }
+    .q_spinner {
+      margin:auto;
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin:auto;
+      text-align:center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #3498db;
+    }
+    .quiz_ended{
+      display:none;
+    }
+    .general_spinner{
+      width:100%;
+      padding:10px;
+      transform:translate(0px,10px);
+      display:none;
+    }
+    .show{
+      display:block;
+    }
   </style>
 </head>
 <body>
   <div id="quiz-room">
-    <h2>Welcome to the Quiz Room</h2>
+    <h2>welcome {{username}} to {{room_name}}</h2>
 
-    <div id="status">Connecting to the lobby...</div>
+    <div id="status">welcome {{username}} to {{room_name}} You are connected to the lobby <p id="participant_count">total_participants:1</p></div>
     <div class="spinner" id="lobby-spinner"></div>
-
+    
+    <div id="timer-container" style="margin:auto; display:none; width: 300px; height: 30px; background: #eee; border-radius: 5px; overflow: hidden; position: relative;">
+      <div id="progress-bar" style="background: #4CAF50; height: 100%; width: 100%; transition: width 1s linear;"></div>
+      <div id="timer-text" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; text-align: center; line-height: 30px; font-weight: bold; color: black;">
+        00:00
+      </div>
+    </div>
+    
     <div id="question" style="display:none;">
       <h3 id="question-text"></h3>
       <div id="options-container"></div>
     </div>
+
+    <div class="your_answer" style="display:none;"></div>
+    <div class="quiz_ended">thanks for participating in the quiz the quiz has finished</div>
 
     <div id="leaderboard" style="display:none;">
       <h4>Leaderboard</h4>
@@ -91,7 +136,14 @@
     </div>
   </div>
 
+
+  <div class="general_spinner">
+    <div class="q_spinner"></div>
+    <div class="loading-text">Loading Question...</div>
+  </div>
+
   <script>
+    let answered=false;
     const ws = new WebSocket('ws://' + window.location.host + '/ws/quizroom/');
 
     const status = document.getElementById("status");
@@ -101,19 +153,80 @@
     const optionsContainer = document.getElementById("options-container");
     const leaderboard = document.getElementById("leaderboard");
     const leaderboardList = document.getElementById("leaderboard-list");
+    const end_msg = document.querySelector(".quiz_ended");
+    const general_spinner = document.querySelector(".general_spinner");
+    const general_spinner_text = document.querySelector(".loading-text");
+    const general_spinner_spinner = document.querySelector(".q_spinner");
+
+    const your_answer = document.querySelector(".your_answer");
+    const pc=document.getElementById("participant_count");
+    
+    function quiz_cleanup(){
+      questionBox.style.display="none";
+      end_msg.classList.add("show");
+      your_answer.style.display="none";
+
+    }
+    function clear_question(){
+      questionBox.style.display="none";
+      general_spinner.add("show");
+      
+    }
+    function general_s_reset(){
+      general_spinner_spinner.style.display="block";
+      general_spinner.classList.remove("show");
+      general_spinner_text.textContent="wait for next question";
+    }
+
+    function startCountdownWithProgress(durationInSeconds) {
+      const timer_container = document.getElementById('timer-container');
+      timer_container.style.display="block";
+      const timerText = document.getElementById('timer-text');
+      const progressBar = document.getElementById('progress-bar');
+  
+      let timer = durationInSeconds;
+      const totalDuration = durationInSeconds;
+  
+      const countdownInterval = setInterval(() => {
+          const minutes = Math.floor(timer / 60);
+          const seconds = timer % 60;
+  
+          timerText.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  
+          // Update the progress bar width
+          const progressPercent = (timer / totalDuration) * 100;
+          progressBar.style.width = `${progressPercent}%`;
+  
+          if (timer <= 0) {
+              clearInterval(countdownInterval);
+              timerText.textContent = "Time's up!";
+              progressBar.style.width = "0%";
+          } else {
+              timer--;
+          }
+      }, 1000);
+    }
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-
+      console.log(data)
       if (data.state_message === "active_question") {
         status.innerText = "Question is live!";
         spinner.style.display = "none";
-      } else if (data.state_message === "wait_for_next") {
+      } 
+      
+      else if (data.state_message === "wait_for_next") {
         status.innerText = "Waiting for next question...";
         spinner.style.display = "block";
         questionBox.style.display = "none";
-      } else if (data.question_data) {
+      } 
+      
+      else if (data.question_data) {
         const q = data.question_data;
+        status.innerText="Next Question";
+        startCountdownWithProgress(q.duration-2);
+        general_s_reset();
+        your_answer.style.display="none";
         questionText.innerText = q.question;
         optionsContainer.innerHTML = "";
         q.options.forEach((opt, idx) => {
@@ -123,29 +236,49 @@
           btn.onclick = () => {
             ws.send(JSON.stringify({quiz_response: String.fromCharCode(65+idx)}));
             status.innerText = "Answer submitted!";
+            questionBox.style.display="none";
+            your_answer.textContent=`your answer: ${btn.innerText}`;
+            your_answer.style.display="block";
+            general_spinner.classList.add("show");
+            general_spinner_text.textContent="waiting for answer";
           };
           optionsContainer.appendChild(btn);
         });
         questionBox.style.display = "block";
         spinner.style.display = "none";
-      } else if (data.quiz_closed === "end") {
+      } 
+      
+      else if (data.quiz_closed === "end") {
+        quiz_cleanup()
         status.innerText = "Quiz Finished! Final Scores:";
         leaderboard.style.display = "block";
         leaderboardList.innerHTML = "";
-        data.final_standings.forEach((entry) => {
-          const li = document.createElement("li");
-          li.textContent = entry.username + ": " + entry.score;
-          leaderboardList.appendChild(li);
+        leaderboardList.innerHtml='';
+        Object.entries(data.final_standings).forEach(([username, score]) => {
+            const li = document.createElement("li");
+            li.textContent = `${username}: ${score}`;
+            leaderboardList.appendChild(li);
         });
       }
+
+      else if(data.upadate_participant_count){
+        pc.textContent=data.upadate_participant_count;
+      }
+
+      else if(data.correct_answer){
+        general_spinner_spinner.style.display="none";
+        general_spinner_text.textContent=`correct answer ${data.correct_answer}`;
+      }
+
+
     };
 
     ws.onopen = () => {
-      status.innerText = "Connected to quiz room.";
+      status.innerText = "status:Connected to quiz room.";
     };
 
     ws.onclose = () => {
-      status.innerText = "Disconnected.";
+      status.innerText = "status:Disconnected.";
       spinner.style.display = "none";
     };
   </script>

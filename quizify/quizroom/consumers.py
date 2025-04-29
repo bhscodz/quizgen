@@ -21,7 +21,9 @@ class quiz_consumer(AsyncWebsocketConsumer):
         if(self.scope["session"]["verified"]) and cache.get(f"master:{self.scope["session"]["quizid"]}_master_is_on"):
             self.user=self.scope["user"]
             self.session_id=self.scope["session"].session_key
+            print(self.session_id)
             self.question_index=None
+            self.quiz_ended=False
             self.answered=False
             self.cached_data=cache.get(f"participant:{self.session_id}")
             self.username=self.cached_data["username"]
@@ -29,12 +31,19 @@ class quiz_consumer(AsyncWebsocketConsumer):
             self.room_name = self.scope["session"]["quizid"]
             self.state=cache.get(f"master:{self.room_name}_master_is_on")
             self.room_group_name = f"quizroom_{self.room_name}"
+            self.total_participants=1
             await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             if self.state != "end":
                 dict=cache.get(f"master:{self.room_name}_current_participants")
                 dict[self.session_id]=self.username
+                self.total_participants=len(dict)
                 dict=cache.set(f"master:{self.room_name}_current_participants",dict)
-                print("[quiz_consumer] participant updated")
+                print("[quiz_consumer] participant updated",self.session_id)
+                dict_all=cache.get(f"master:{self.room_name}_all_participants")
+                dict_all[self.session_id]=self.username
+                dict=cache.set(f"master:{self.room_name}_all_participants",dict_all)
+                
+                
                 
             await self.accept()
             await self.update_lobby()
@@ -53,13 +62,14 @@ class quiz_consumer(AsyncWebsocketConsumer):
                 "lobby_data":list(cache.get(f"master:{self.room_name}_current_participants").values())
             }
         )
+        await self.send(json.dumps({"update_participant_count":self.total_participants}))
         print("[quiz_consumer] lobby update sent")
         
     async def send_state(self):
         state=self.state
         if self.state=="started" and self.get_question_state()=="active":
             await self.send(json.dumps({"state_message":"active_question"}))
-            await self.send_question()
+            await self.update_question()
         elif self.state=="started" and (self.get_question_state()=="time_over" or self.get_question_state()=="no_question"):
             await self.send(json.dumps({"state_message":"wait_for_next"}))
         else:
@@ -140,17 +150,20 @@ class quiz_consumer(AsyncWebsocketConsumer):
                 score=data["score"]
                 # updating the participant cache
                 cache.set(f"participant:{self.session_id}",data)
+                
         # updating the score in main cache
         d_temp=cache.get(f"master:{self.room_name}_scores")
         d_temp[self.session_id]=score
         cache.set(f"master:{self.room_name}_scores",d_temp)
         print("check answer current leader board",d_temp)
+        await self.send(json.dumps({"correct_answer":event["ans"]}))
 
 
     async def quiz_finished(self,event):
-        self.send(json.dumps({"quiz_closed":"end","final_standings":cache.get(f"master:{self.room_name}_leader_board")}))
+        self.quiz_ended=True
+        await self.send(json.dumps({"quiz_closed":"end","final_standings":cache.get(f"master:{self.room_name}_leader_board")}))
         print("final standings",cache.get(f"master:{self.room_name}_leader_board"))
-        self.close()
+        await self.close()
 
 class waiting_for_host(AsyncWebsocketConsumer):
     async def connect(self):
@@ -173,18 +186,13 @@ class host_management(AsyncWebsocketConsumer):
             self.room_name=self.scope["session"]["room_id"]
             self.room_group_name= f"quizroom_host:{self.room_name}"
             await self.accept()
-            data1=cache.get(f"self.room_group_name_status")
-            data2=cache.get(f"self.room_group_name_lobby")
-            data3=cache.get(f"self.room_group_name_leader_board")
-            if data1:
-                print("state_found",data1)
-                await self.send(json.dumps({"update_from_cache_status":data1}))
-            if data2:
-                print("state_found",data2)
-                await self.send(json.dumps({"update_from_cache_lobby":data2}))
-            if data3:
-                print("state_found",data3)
-                await self.send(json.dumps({"update_from_cache_leader_board":data3}))
+            data1=cache.get(f"{self.room_group_name}_status")
+            data2=cache.get(f"{self.room_group_name}_lobby")
+            data3=cache.get(f"{self.room_group_name}_leader_board")
+            cache_dict={"status":data1,"lobby":data2,"leader_board":data3}
+            """ if data1 or data2 or data3:
+                print("[host management] state sent")
+                await self.send(json.dumps({"update_from_cache":cache_dict})) """
             
         else:
             DenyConnection("host validation failed")
@@ -202,17 +210,16 @@ class host_management(AsyncWebsocketConsumer):
                     self.master_instance=await start_quiz_master(self.room_name,self.channel_name)
     
     async def update_cache_lobby(self,lobby):
-        print("state updated")
+        print("[Host managemnet]state updated")
         cache.set(f"{self.room_group_name}_lobby",lobby)      
     async def update_cache_leader(self,leader):
-        print("state updated")
-        cache.set(f"{self.room_group_name}_leader",leader)      
+        print("[Host managemnet]state updated")
+        cache.set(f"{self.room_group_name}_leader_board",leader)      
     async def update_cache_status(self,status):
-        print("state updated")
+        print("[Host managemnet]state updated")
         cache.set(f"{self.room_group_name}_status",status)      
     
     async def waiting_lobby_started(self,event):
-        await self.update_cache_status("waiting_lobby_started")
         await self.send(json.dumps({"status":"waiting_lobby_started"}))
         
     
