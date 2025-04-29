@@ -169,7 +169,7 @@
 
   <script>
     const socket = new WebSocket(
-      `ws://${window.location.host}/ws/quizroom/host/`
+      ws://${window.location.host}/ws/quizroom/host/
     );
 
     const statusSpan = document.getElementById("quiz-status");
@@ -192,7 +192,11 @@
       currentQuestion.innerHTML = `
         <h3>Question ${question.index + 1}: ${question.text}</h3>
         <ul>
+<<<<<<< HEAD
           ${question.options.map((opt, i) => `<li><strong>${String.fromCharCode(65 + i)}.</strong> ${opt}</li>`).join("")}
+=======
+          ${question.options.map((opt, i) => <li><strong>${String.fromCharCode(65 + i)}.</strong> ${opt}</li>).join("")}
+>>>>>>> 6dfd59f407f73a2092a727a585c33e80fbd73a35
         </ul>
         <p><strong>Points:</strong> ${question.points}</p>
         <p><strong>Duration:</strong> ${question.duration} seconds</p>

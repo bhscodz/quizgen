@@ -50,6 +50,7 @@ def add_questions(request,room_id):
             form=question_formset(request.POST,request.FILES,instance=room)
             if form.is_valid():
                 form.save()
+                messages.success(request, f"QUESTIONS ADDED SUCCESSFULLY") 
                 return redirect("home")
             else:
                 print(form.errors)
@@ -66,6 +67,7 @@ def update_room(request,room_id):
         form=create_quiz(request.POST,instance=room)
         if form.is_valid():
             form.save()
+            messages.success(request, f"quiz updated successfully") 
             return redirect("manage_quiz")
     return render(request,"create_quiz.html",{"form":form,"title":"update"})
 

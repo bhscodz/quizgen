@@ -4,43 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/3261/3261190.png">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudgflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <title>Quiz Room | QUIZGEN</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #121212;
       color: #f0f0f0;
-      padding: 20px;
+      margin: 0;
+      padding: 5vw;
     }
 
     #quiz-room {
+      width: 90%;
       max-width: 800px;
-      margin: auto;
+      margin: 0 auto;
       background: #1e1e1e;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+      padding: 5vw;
+      border-radius: 3vw;
+      box-shadow: 0 0 2vw rgba(0,0,0,0.6);
     }
 
     h2 {
       text-align: center;
       color: #ff6f61;
+      font-size: 6vw;
     }
 
     #status {
       text-align: center;
-      margin: 20px 0;
+      margin: 5vw 0;
+      font-size: 4vw;
     }
 
     .spinner {
-      border: 6px solid rgba(255,255,255,0.1);
-      border-top: 6px solid #ff6f61;
+      border: 0.8vw solid rgba(255,255,255,0.1);
+      border-top: 0.8vw solid #ff6f61;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 12vw;
+      height: 12vw;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin: 5vw auto;
     }
 
     @keyframes spin {
@@ -49,18 +53,24 @@
     }
 
     #question {
-      margin-top: 30px;
-      padding: 20px;
+      margin-top: 8vw;
+      padding: 5vw;
       background: #2e2e2e;
-      border-radius: 10px;
+      border-radius: 2vw;
+    }
+
+    #question h3 {
+      font-size: 5vw;
+      margin-bottom: 4vw;
     }
 
     .option {
       background: #333;
-      margin: 10px 0;
-      padding: 10px 20px;
-      border-radius: 8px;
+      margin: 3vw 0;
+      padding: 3vw 5vw;
+      border-radius: 2vw;
       cursor: pointer;
+      font-size: 4vw;
       transition: background 0.3s;
     }
 
@@ -69,10 +79,73 @@
     }
 
     #leaderboard, #answers {
-      margin-top: 20px;
+      margin-top: 5vw;
       background: #292929;
-      padding: 15px;
-      border-radius: 10px;
+      padding: 4vw;
+      border-radius: 2vw;
+    }
+
+    #leaderboard h4 {
+      font-size: 5vw;
+      margin-bottom: 4vw;
+      text-align: center;
+    }
+
+    #leaderboard-list {
+      list-style: none;
+      padding-left: 0;
+      font-size: 4vw;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 40px;
+      }
+
+      #quiz-room {
+        padding: 30px;
+        border-radius: 15px;
+      }
+
+      h2 {
+        font-size: 2rem;
+      }
+
+      #status {
+        font-size: 1.2rem;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 6px solid rgba(255,255,255,0.1);
+        border-top: 6px solid #ff6f61;
+      }
+
+      #question {
+        padding: 20px;
+      }
+
+      #question h3 {
+        font-size: 1.5rem;
+      }
+
+      .option {
+        padding: 12px 20px;
+        font-size: 1rem;
+      }
+
+      #leaderboard, #answers {
+        padding: 15px;
+      }
+
+      #leaderboard h4 {
+        font-size: 1.5rem;
+      }
+
+      #leaderboard-list {
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
