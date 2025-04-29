@@ -14,7 +14,7 @@ def signup_user(request):
         user_form=create_user(request.POST)
         if user_form.is_valid():
             user_form.save()
-            messages.success(request, "Profile created plz log in")
+            messages.success(request, "Profile created please log in")
             return redirect("accounts:login_user")
         
         else:
@@ -43,7 +43,7 @@ def logout_user(request):
 
 @isguest
 def guest_login(request):
-    messages.success(request, f"welcom guest user")
+    messages.success(request, f"welcome guest user")
     return redirect("home")
 
 @login_required(login_url="accounts:login_user")
@@ -77,6 +77,7 @@ def edit_profile(request):
         if avatar:  # Only update if new avatar was uploaded
             profile.avatar = avatar
         profile.save()
+        messages.success((request),"Your profile has been updated .")
         
         return redirect('accounts:profile')  # Redirect to profile page after saving
     

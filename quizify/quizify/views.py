@@ -19,7 +19,7 @@ def manage_quiz(request):
 def quizzes(request):
     return render (request,"quizzes.html")
 def home(request):
-    messages.success(request, f"hi there {request.user}")
+    messages.success(request, f"Welcome {request.user}")
     return render(request,"home.html")
 def join_quiz(request):
     #logic to travel to the quiz page according to input code

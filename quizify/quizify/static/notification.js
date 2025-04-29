@@ -16,25 +16,30 @@ function createNotification(message, type = 'info') {
       document.body.appendChild(container);
     }
   
-    // Create notification
+    // create notifications
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
+    notification.style.position = 'fixed'; 
+    notification.style.top = '85px'; 
+    notification.style.left = '25%';  
     notification.style.padding = '10px 15px';
     notification.style.backgroundColor = type === 'success' ? '#4caf50' :
-                                         type === 'error' ? '#f44336' :
-                                         type === 'warning' ? '#ff9800' : '#2196f3';
+                                       type === 'error' ? '#f44336' :
+                                       type === 'warning' ? '#ff9800' : '#2196f3';
     notification.style.color = 'white';
     notification.style.borderRadius = '5px';
     notification.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2)';
     notification.style.minWidth = '200px';
+    notification.style.textAlign = 'center'; 
+    notification.style.zIndex = '1000'; 
     notification.textContent = message;
-  
-    container.appendChild(notification);
-  
+    
+    document.body.appendChild(notification); // Append to body
+    
     // Auto-remove after 4 seconds
     setTimeout(() => {
       notification.remove();
-    }, 4000);
+    }, 3000);
   }
 
 window.onload = function(){
